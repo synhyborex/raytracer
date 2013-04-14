@@ -1,0 +1,12 @@
+#Compiled files
+*.o
+
+#Image files
+*.tga
+
+#Binaries
+render
+
+#Scratch files
+*~
+*.swp
