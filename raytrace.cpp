@@ -183,7 +183,7 @@ int main(int argc, char* argv[]){
   //image processing
 
   //image variables
-  float convLoc[3]; //coverted location
+  float convLoc[3][3]; //coverted location, max of 3 sets
   color_t clr; //color
   float max_x, max_y, min_x, min_y; //bounding box
 
@@ -206,9 +206,9 @@ int main(int argc, char* argv[]){
       //do nothing for now
     }
 
-    convLoc[0] = world_to_pixel_x(imageHeight, imageWidth, convLoc[0]);
+    /*convLoc[0] = world_to_pixel_x(imageHeight, imageWidth, convLoc[0]);
     convLoc[1] = world_to_pixel_y(imageHeight, imageWidth, convLoc[1]);
-    convLoc[2] *= -1;
+    convLoc[2] *= -1;*/
   }
 
   // write the targa file to disk
