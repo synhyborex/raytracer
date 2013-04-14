@@ -1,6 +1,6 @@
 #include "TriObj.h"
 
-TriObj::TriObj(){objID = -1;}
+TriObj::TriObj(){objID = 5;}
 TriObj::TriObj(int id){objID = id;}
 TriObj::~TriObj(){}
 

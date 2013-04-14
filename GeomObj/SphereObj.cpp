@@ -1,6 +1,6 @@
 #include "SphereObj.h"
 
-SphereObj::SphereObj(){objID = -1;}
+SphereObj::SphereObj(){objID = 4;}
 SphereObj::SphereObj(int id){objID = id;}
 SphereObj::~SphereObj(){}
 

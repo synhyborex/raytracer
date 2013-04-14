@@ -178,7 +178,23 @@ int main(int argc, char* argv[]){
   cout << "File parsing complete." << endl;
 
   //demo purposes
-  cout << "size of list: " << objectList.size() << endl;
+  //cout << "size of list: " << objectList.size() << endl;
+
+  //image processing
+
+  //image variables
+  float convLoc[3][3]; //coverted location
+  color_t clr; //color
+  float max_x, max_y, min_x, min_y; //bounding box
+
+  //convert locations for each object
+  for(int list = 0; list < objectList.size(); list++){
+    for(int i = 0; i < 3; i++){
+      for(int j = 0; j < 3; j++){
+
+      }
+    }
+  }
 
   // write the targa file to disk
   img.WriteTga((char *)"awesome.tga", true); 

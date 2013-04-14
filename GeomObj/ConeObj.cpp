@@ -1,6 +1,6 @@
 #include "ConeObj.h"
 
-ConeObj::ConeObj(){objID = -1;}
+ConeObj::ConeObj(){objID = 2;}
 ConeObj::ConeObj(int id){objID = id;}
 ConeObj::~ConeObj(){}
 

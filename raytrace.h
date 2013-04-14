@@ -35,6 +35,18 @@ vector<GeomObj*> objectList;
 ifstream infile;
 char* filename;
 
-//window variables
-int w_width;
-int w_height;
+/*****FUNCTIONS*****/
+
+float world_to_pixel_x(float height, float width, float x){
+  float d = (width-1)/2;
+  float c = d;
+
+  return (c*x+d)*height/width; //adjust for scaling
+}
+
+float world_to_pixel_y(float height, float width, float y){
+  float f = (height-1)/2;
+  float e = f;
+
+  return e*y+f;
+}

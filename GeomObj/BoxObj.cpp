@@ -1,6 +1,6 @@
 #include "BoxObj.h"
 
-BoxObj::BoxObj(){objID = -1;}
+BoxObj::BoxObj(){objID = 1;}
 BoxObj::BoxObj(int id){objID = id;}
 BoxObj::~BoxObj(){}
 

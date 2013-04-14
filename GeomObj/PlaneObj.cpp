@@ -1,6 +1,6 @@
 #include "PlaneObj.h"
 
-PlaneObj::PlaneObj(){objID = -1;}
+PlaneObj::PlaneObj(){objID = 3;}
 PlaneObj::PlaneObj(int id){objID = id;}
 PlaneObj::~PlaneObj(){}
 
