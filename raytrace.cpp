@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
       }
     }
     //missing dimension argument
-    if(argc == 3 && fileAvail){
+    if(argc == 3 && !strcmp(argv[0],"-I")){
       cout << "Missing dimension. Exiting program." << endl;
       return 0;
     }
