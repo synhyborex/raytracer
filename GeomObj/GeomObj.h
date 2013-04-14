@@ -21,6 +21,7 @@ class GeomObj{
     virtual void intersect() =0;
     virtual void shade() =0;
     virtual void printID(){cout << "Geom " << objID << endl;};
+    virtual int getID(){return objID;};
     int objID; //object ID
     vec3 rgbColor; //rgb color
     vec3 rgbfColor; //rgbf color

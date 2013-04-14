@@ -189,7 +189,22 @@ int main(int argc, char* argv[]){
 
   //convert locations for each object
   for(int list = 0; list < objectList.size(); list++){
-    if(objectList->objID == 0)
+    //switch()
+    if(objectList[list]->getID() == 1){ //box
+      //do nothing for now
+    }
+    else if(objectList[list]->getID() == 2){ //cone
+      //do nothing for now
+    }
+    else if(objectList[list]->getID() == 3){ //plane
+      //do nothing for now
+    }
+    else if(objectList[list]->getID() == 4){ //sphere
+      //do nothing for now
+    }
+    else if(objectList[list]->getID() == 5){ //triangle
+      //do nothing for now
+    }
 
     convLoc[0] = world_to_pixel_x(imageHeight, imageWidth, convLoc[0]);
     convLoc[1] = world_to_pixel_y(imageHeight, imageWidth, convLoc[1]);
