@@ -8,7 +8,7 @@ class SphereObj: public GeomObj{
     SphereObj(int id);
     ~SphereObj();
     virtual void parse(ifstream&);
-    virtual void intersect();
+    virtual bool intersect(vec3,vec3,float*);
     virtual void shade();
     virtual void printID();
     float getRadius();

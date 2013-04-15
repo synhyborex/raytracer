@@ -1,32 +1,8 @@
 #include "raytrace.h"
 
 int main(int argc, char* argv[]){
-  /*GeomObj *s1 = new SphereObj();
-  GeomObj *s2 = new SphereObj(5);
-  GeomObj *c1 = new ConeObj(-4);
-  GeomObj *c2 = new ConeObj();
-  GeomObj *p1 = new PlaneObj(1);
-  GeomObj *p2 = new PlaneObj();
-  GeomObj *t1 = new TriObj(1);
-  GeomObj *t2 = new TriObj();
-
-  objectList.push_back(s1);
-  objectList.push_back(s2);
-  objectList.push_back(c1);
-  objectList.push_back(p1);
-  s1 = new SphereObj(1);
-  objectList.push_back(s1);
-
-  for(int i = 0; i < 5; i++){
-    objectList[i]->printID();
-  }
-
-  vec3 bob = vec3(0,0,0);
-  delete s1;
-  delete s2;
-  delete c1;*/
-
   //initialize scene objects
+  totalSize = 0; //number of objects
   camera = new Camera(); //camera
   light = new Light(); //light
   plane = new PlaneObj(); //plane
@@ -109,14 +85,17 @@ int main(int argc, char* argv[]){
     imageHeight = 480;
   }
 
+  //in case something was missed
+  if(imageWidth == 0 || imageHeight == 0){
+    imageWidth = 640;
+    imageHeight = 480;
+  }
+
   //default case if dimensions, but no file option
   if(!fileAvail && !error){
     cout << "No filename found. Using default." << endl;
     filename = "bunny_small.pov";
   }
-
-  //create image object
-  Image img(imageWidth, imageHeight);
 
   //try opening file
   infile.open(filename,ifstream::in);
@@ -152,59 +131,128 @@ int main(int argc, char* argv[]){
     //check if plane
     else if(!strcmp(nextString,"plane")){
       plane->parse(infile);
-      objectList.push_back(plane);
+      PlaneList.push_back(plane);
+      totalSize++;
     }
     //check if sphere
     else if(!strcmp(nextString,"sphere")){
       sphere->parse(infile);
-      objectList.push_back(sphere);
+      SphereList.push_back(sphere);
+      totalSize++;
     }
     //check if cone
     else if(!strcmp(nextString,"cone")){
       cone->parse(infile);
-      objectList.push_back(cone);
+      ConeList.push_back(cone);
+      totalSize++;
     }
     //check if box
     else if(!strcmp(nextString,"box")){
       box->parse(infile);
-      objectList.push_back(box);
+      BoxList.push_back(box);
+      totalSize++;
     }
     //check if triangle
     else if(!strcmp(nextString,"triangle")){
       tri->parse(infile);
-      objectList.push_back(tri);
+      TriList.push_back(tri);
+      totalSize++;
     }
   }
   cout << "File parsing complete." << endl;
 
   //demo purposes
-  //cout << "size of list: " << objectList.size() << endl;
+  cout << "Size of list: " << totalSize << endl;
 
-  //image processing
+  /**Image Processing**/
+  //create image object
+  Image img(imageWidth, imageHeight);
 
-  //image variables
-  float convLoc[3][3]; //coverted location, max of 3 sets
-  color_t clr; //color
-  float max_x, max_y, min_x, min_y; //bounding box
+  //set camera space bounding box
+  leftB = -(float)imageWidth/imageHeight; //left of near plane
+  rightB = (float)imageWidth/imageHeight; //right of near plane
+  top = 1; //top of near plane
+  bot = -1; //bottom of near plane
 
-  //convert locations for each object
-  for(int list = 0; list < objectList.size(); list++){
-    switch(objectList[list]->getID()){
-      case 1: //box
-        break;
-      case 2: //cone
-        break;
-      case 3: //plane
-        break;
-      case 4: //sphere
-        break;
-      case 5: //triangle
-        break;
+  //per pixel calculations
+  for(int x = 0; x < imageWidth; x++){ //x of image
+    for(int y = 0; y < imageHeight; y++){ //y of image 
+      //covert to camera space
+      camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
+      camSpace.y = bot+((top-bot)*((y+0.5)/imageHeight));
+      camSpace.z = -1;
+
+      //convert to world space
+      worldSpace = (camSpace.x*camera->getRight())
+        +(camSpace.y*camera->getUp())
+        +(camSpace.z*cross(camera->getRight(),camera->getUp()));
+
+      //create ray
+      //ray = camera->loc - worldSpace;
+      ray = normalize(worldSpace - camera->loc);
+      //ray = vec3(0,0,-1);
+
+      //per object calculations
+      //box
+      for(int size = 0; size < BoxList.size(); size++){
+        //do nothing for now
+      }
+      //sphere
+      for(int size = 0; size < SphereList.size(); size++){
+        if(SphereList[size]->intersect(ray,camera->loc,&t)){
+          //using rgb color
+          if(SphereList[size]->rgbColor != vec3(-1)){
+            clr.r = SphereList[size]->rgbColor.x;
+            clr.g = SphereList[size]->rgbColor.y;
+            clr.b = SphereList[size]->rgbColor.z;
+          }
+          //else using rgbf color
+          else if(SphereList[size]->rgbfColor != vec3(-1)){
+            clr.r = SphereList[size]->rgbfColor.x;
+            clr.g = SphereList[size]->rgbfColor.y;
+            clr.b = SphereList[size]->rgbfColor.z;
+          }
+          //else invalid color
+          else{
+            cout << "Invalid color." << endl;
+          }
+        }
+
+        //set color
+        img.pixel(x,y,clr);
+      }
+      //cone
+      for(int size = 0; size < ConeList.size(); size++){
+        //do nothing for now
+      }
+      //plane
+      for(int size = 0; size < PlaneList.size(); size++){
+        if(PlaneList[size]->intersect(ray,camera->loc,&t)){
+          //using rgb color
+          if(PlaneList[size]->rgbColor != vec3(-1)){
+            clr.r = PlaneList[size]->rgbColor.x;
+            clr.g = PlaneList[size]->rgbColor.y;
+            clr.b = PlaneList[size]->rgbColor.z;
+          }
+          //else using rgbf color
+          else if(PlaneList[size]->rgbfColor != vec3(-1)){
+            clr.r = PlaneList[size]->rgbfColor.x;
+            clr.g = PlaneList[size]->rgbfColor.y;
+            clr.b = PlaneList[size]->rgbfColor.z;
+          }
+          //else invalid color
+          else{
+            cout << "Invalid color." << endl;
+          }
+        }
+        //set color
+        img.pixel(x,y,clr);
+      }
+      //triangle
+      for(int size = 0; size < TriList.size(); size++){
+        //do nothing for now
+      }
     }
-
-    /*convLoc[0] = world_to_pixel_x(imageHeight, imageWidth, convLoc[0]);
-    convLoc[1] = world_to_pixel_y(imageHeight, imageWidth, convLoc[1]);
-    convLoc[2] *= -1;*/
   }
 
   // write the targa file to disk

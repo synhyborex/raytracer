@@ -8,7 +8,7 @@ class TriObj: public GeomObj{
     TriObj(int id);
     ~TriObj();
     virtual void parse(ifstream&);
-    virtual void intersect();
+    virtual bool intersect(vec3,vec3,float*);
     virtual void shade();
     virtual void printID();
     vec3 getLoc(int);

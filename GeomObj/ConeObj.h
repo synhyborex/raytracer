@@ -8,7 +8,7 @@ class ConeObj: public GeomObj{
     ConeObj(int id);
     ~ConeObj();
     virtual void parse(ifstream&);
-    virtual void intersect();
+    virtual bool intersect(vec3,vec3,float*);
     virtual void shade();
     virtual void printID();
     vec3 getLoc(int);

@@ -1,6 +1,6 @@
 #include "PlaneObj.h"
 
-PlaneObj::PlaneObj(){objID = 3;}
+PlaneObj::PlaneObj(){objID = -1;}
 PlaneObj::PlaneObj(int id){objID = id;}
 PlaneObj::~PlaneObj(){}
 
@@ -33,11 +33,16 @@ void PlaneObj::parse(ifstream &infile){
     infile >> nextString; //get distance value
     distance = strtod(nextString,NULL); //set value
 
+    bool pad = false; //pad check
     while(strcmp(nextString,"}")){
-      infile >> nextString; //get option on next line
+      if(!pad){ //padding check
+        infile >> nextString; //get option on next line
+        pad = false;
+      }
+
       //pigment option
       if(!strcmp(nextString,"pigment")){
-        infile >> nextString; //skip bracket
+        infile.getline(nextString,10,'{'); //skip bracket
         infile >> nextString; //get option
         //color option
         if(!strcmp(nextString,"color")){
@@ -63,6 +68,13 @@ void PlaneObj::parse(ifstream &infile){
               rgbColor.z = strtod(nextString,NULL); //assign value
 
               infile.getline(nextString,15); //throw away rest of line
+              //check for padding
+              while(nextString[0] == ' ') //get to value
+                nextString = nextString+1;
+              if(nextString[0] == '}'){
+                infile >> nextString;
+                pad = true;
+              }
             }
             //rgbf colors
             else if(!strcmp(nextString,"rgbf")){
@@ -90,12 +102,19 @@ void PlaneObj::parse(ifstream &infile){
               rgbfColor[3] = strtod(nextString,NULL); //assign value
 
               infile.getline(nextString,15); //throw away rest of line
+              //check for padding
+              while(nextString[0] == ' ') //get to value
+                nextString = nextString+1;
+              if(nextString[0] == '}'){
+                infile >> nextString;
+                pad = true;
+              }
             }
         }
       }
       //finish option
       else if(!strcmp(nextString,"finish")){
-        infile >> nextString; //skip over bracket
+        infile.getline(nextString,10,'{'); //skip over bracket
         while(strcmp(nextString,"}")){
           infile >> nextString; //get option
           //ambient
@@ -140,7 +159,22 @@ void PlaneObj::parse(ifstream &infile){
     infile >> nextString; //get rid of last '}'
 }
 
-void PlaneObj::intersect(){}
+bool PlaneObj::intersect(vec3 ray, vec3 cam, float *t){
+  float denom = dot(ray,normal);
+  vec3 p = normalize(normal)*-distance;
+
+  if(denom == 0)
+    return false;
+  
+  *t = dot(p-cam,normal)/denom;
+
+  if(*t > 0){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
 void PlaneObj::shade(){}
 void PlaneObj::printID(){cout << "Plane " << objID << endl;};
 

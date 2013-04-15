@@ -8,7 +8,7 @@ class BoxObj: public GeomObj{
     BoxObj(int id);
     ~BoxObj();
     virtual void parse(ifstream&);
-    virtual void intersect();
+    virtual bool intersect(vec3,vec3,float*);
     virtual void shade();
     virtual void printID();
     vec3 getCorner(int);
