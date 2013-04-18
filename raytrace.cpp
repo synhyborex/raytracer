@@ -24,7 +24,7 @@ int main(int argc, char* argv[]){
     }
 
     //check for shading flag
-    if(argv[argc-1][0] == '-'){
+    if(argv[argc-1][0] == '-' || argv[argc-1][0] == '.'){
       cout << "Shading not specified. Using Phong." << endl;
       shade = 0;
     }
