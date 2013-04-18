@@ -1,1 +1,3 @@
-Raytracer version control.
+Neither test is fully working, unfortunately. I'm not really sure where the
+math went wrong, but they're both partially working. Changing the values
+inside the .pov file will result in different pictures.

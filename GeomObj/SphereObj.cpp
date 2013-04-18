@@ -30,7 +30,7 @@ void SphereObj::parse(ifstream &infile){
 
   //radius option
     infile >> nextString; //discard commas
-    infile >> nextString; //get distance value
+    infile >> nextString; //get value
     radius = strtod(nextString,NULL); //set value
 
   bool pad = false; //padding
@@ -240,6 +240,7 @@ void SphereObj::parse(ifstream &infile){
 }
 
 bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
+  //cam += loc;
   float A = dot(ray,ray);
   float B = 2*dot(ray,cam-loc);
   float C = dot(cam-loc,cam-loc)-(radius*radius);
@@ -258,7 +259,7 @@ bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
   else
       q = (-B + distSqrt)/2.0;
 
-  // compute t0 and t1
+  // compute t1 and t2
   t1 = q / A;
   t2 = C / q;
 

@@ -169,28 +169,36 @@ int main(int argc, char* argv[]){
   Image img(imageWidth, imageHeight);
 
   //set camera space bounding box
-  leftB = -(float)imageWidth/imageHeight; //left of near plane
-  rightB = (float)imageWidth/imageHeight; //right of near plane
-  top = 1; //top of near plane
-  bot = -1; //bottom of near plane
+  leftB = (-(float)imageWidth/imageHeight)/2.0f; //left of near plane
+  rightB = ((float)imageWidth/imageHeight)/2.0f; //right of near plane
+  topB = -1/1.5f; //top of near plane
+  botB = 1/1.5f; //bottom of near plane
+
+  //initialize depth buffer
+  float depth[imageWidth][imageHeight];
+  //float bestT[imageWidth][imageHeight];
+  for (int i=0; i<imageWidth; i++){
+    for (int j=0; j<imageHeight; j++){
+      depth[i][j] = INT_MAX;
+    }
+  }
 
   //per pixel calculations
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image 
       //covert to camera space
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
-      camSpace.y = bot+((top-bot)*((y+0.5)/imageHeight));
+      camSpace.y = botB+((topB-botB)*((y+0.5)/imageHeight));
       camSpace.z = -1;
 
       //convert to world space
-      worldSpace = (camSpace.x*camera->getRight())
+      worldSpace = camera->loc + (camSpace.x*camera->getRight())
         +(camSpace.y*camera->getUp())
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
       //create ray
-      //ray = camera->loc - worldSpace;
-      ray = normalize(worldSpace - camera->loc);
-      //ray = vec3(0,0,-1);
+      ray = worldSpace - camera->loc;
+      ray = normalize(ray);
 
       //per object calculations
       //box
@@ -199,27 +207,30 @@ int main(int argc, char* argv[]){
       }
       //sphere
       for(int size = 0; size < SphereList.size(); size++){
+        //if intersect
         if(SphereList[size]->intersect(ray,camera->loc,&t)){
-          //using rgb color
-          if(SphereList[size]->rgbColor != vec3(-1)){
-            clr.r = SphereList[size]->rgbColor.x;
-            clr.g = SphereList[size]->rgbColor.y;
-            clr.b = SphereList[size]->rgbColor.z;
+          if(t < depth[x][y]){ //check depth
+            depth[x][y] = t; //update depth
+            //using rgb color
+            if(SphereList[size]->rgbColor != vec3(-1)){
+              clr.r = SphereList[size]->rgbColor.x;
+              clr.g = SphereList[size]->rgbColor.y;
+              clr.b = SphereList[size]->rgbColor.z;
+            }
+            //else using rgbf color
+            else if(SphereList[size]->rgbfColor != vec3(-1)){
+              clr.r = SphereList[size]->rgbfColor.x;
+              clr.g = SphereList[size]->rgbfColor.y;
+              clr.b = SphereList[size]->rgbfColor.z;
+            }
+            //else invalid color
+            else{
+              cout << "Invalid color." << endl;
+            }
           }
-          //else using rgbf color
-          else if(SphereList[size]->rgbfColor != vec3(-1)){
-            clr.r = SphereList[size]->rgbfColor.x;
-            clr.g = SphereList[size]->rgbfColor.y;
-            clr.b = SphereList[size]->rgbfColor.z;
-          }
-          //else invalid color
-          else{
-            cout << "Invalid color." << endl;
-          }
+          //set color
+          img.pixel(x,y,clr);
         }
-
-        //set color
-        img.pixel(x,y,clr);
       }
       //cone
       for(int size = 0; size < ConeList.size(); size++){
@@ -227,26 +238,30 @@ int main(int argc, char* argv[]){
       }
       //plane
       for(int size = 0; size < PlaneList.size(); size++){
+        //if intersect
         if(PlaneList[size]->intersect(ray,camera->loc,&t)){
-          //using rgb color
-          if(PlaneList[size]->rgbColor != vec3(-1)){
-            clr.r = PlaneList[size]->rgbColor.x;
-            clr.g = PlaneList[size]->rgbColor.y;
-            clr.b = PlaneList[size]->rgbColor.z;
+          if(t < depth[x][y]){ //check depth
+            depth[x][y] = t; //update depth
+            //using rgb color
+            if(PlaneList[size]->rgbColor != vec3(-1)){
+              clr.r = PlaneList[size]->rgbColor.x;
+              clr.g = PlaneList[size]->rgbColor.y;
+              clr.b = PlaneList[size]->rgbColor.z;
+            }
+            //else using rgbf color
+            else if(PlaneList[size]->rgbfColor != vec3(-1)){
+              clr.r = PlaneList[size]->rgbfColor.x;
+              clr.g = PlaneList[size]->rgbfColor.y;
+              clr.b = PlaneList[size]->rgbfColor.z;
+            }
+            //else invalid color
+            else{
+              cout << "Invalid color." << endl;
+            }
           }
-          //else using rgbf color
-          else if(PlaneList[size]->rgbfColor != vec3(-1)){
-            clr.r = PlaneList[size]->rgbfColor.x;
-            clr.g = PlaneList[size]->rgbfColor.y;
-            clr.b = PlaneList[size]->rgbfColor.z;
-          }
-          //else invalid color
-          else{
-            cout << "Invalid color." << endl;
-          }
+          //set color
+          img.pixel(x,y,clr);
         }
-        //set color
-        img.pixel(x,y,clr);
       }
       //triangle
       for(int size = 0; size < TriList.size(); size++){

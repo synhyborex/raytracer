@@ -35,7 +35,7 @@ color_t clr; //color
 float t; //interpolation value
 vec3 camSpace; //camera space coordinates
 vec3 worldSpace; //world space coordinates
-float rightB, top, bot, leftB; //camera space bounding box
+float rightB, topB, botB, leftB; //camera space bounding box
 
 //object storage variables
 int totalSize; //number of objects
