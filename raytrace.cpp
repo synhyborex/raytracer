@@ -18,9 +18,23 @@ int main(int argc, char* argv[]){
   bool error = false; //print error or not
   if(argc > 1){
     //argument checks
-    if(argc > 4){
+    if(argc > 5){
       cout << "Too many arguments. Exiting program." << endl;
       return 0;
+    }
+
+    //check for shading flag
+    if(argv[argc-1][0] == '-'){
+      cout << "Shading not specified. Using Phong." << endl;
+      shade = 0;
+    }
+    else{
+      shade = strtod(argv[argc-1],NULL);
+      //make sure it's a valid option
+      if(shade > 1){
+        cout << "Invalid shading option. Using Phong." << endl;
+        shade = 0;
+      }
     }
 
     //look for image flag
@@ -187,16 +201,19 @@ int main(int argc, char* argv[]){
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image 
       //covert to camera space
+      vec3 camSpace; //camera space coordinates
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
       camSpace.y = botB+((topB-botB)*((y+0.5)/imageHeight));
       camSpace.z = -1;
 
       //convert to world space
+      vec3 worldSpace; //world space coordinates
       worldSpace = camera->loc + (camSpace.x*camera->getRight())
         +(camSpace.y*camera->getUp())
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
       //create ray
+      vec3 ray; //ray to cast
       ray = worldSpace - camera->loc;
       ray = normalize(ray);
 

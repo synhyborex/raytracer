@@ -27,15 +27,10 @@ ConeObj* cone;
 //image variables
 int imageWidth; //width of image
 int imageHeight; //height of image
-vec3 objLoc[3]; //coverted location, max of 3 sets
-vec3 camLoc; //camera location
-vec3 lightLoc; //light location
-vec3 ray; //ray to cast
 color_t clr; //color
 float t; //interpolation value
-vec3 camSpace; //camera space coordinates
-vec3 worldSpace; //world space coordinates
 float rightB, topB, botB, leftB; //camera space bounding box
+int shade; //the kind of shading
 
 //object storage variables
 int totalSize; //number of objects
