@@ -271,7 +271,7 @@ void TriObj::parse(ifstream& infile){
 }
 
 bool TriObj::intersect(vec3 ray, vec3 cam, float *t){return true;}
-void TriObj::shade(){}
+void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){}
 void TriObj::printID(){cout << "Tri " << objID << endl;};
 
 vec3 TriObj::getLoc(int v){

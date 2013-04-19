@@ -253,7 +253,7 @@ void BoxObj::parse(ifstream& infile){
 }
 
 bool BoxObj::intersect(vec3 ray, vec3 cam, float *t){return true;}
-void BoxObj::shade(){}
+void BoxObj::shade(vec3 ray,vec3 worldPos,color_t* clr,Light l, int shade){}
 void BoxObj::printID(){cout << "Box " << objID << endl;};
 
 vec3 BoxObj::getCorner(int id){

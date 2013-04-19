@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
     else{
       shade = strtod(argv[argc-1],NULL);
       //make sure it's a valid option
-      if(shade > 1){
+      if(shade > 1 || shade < 0){
         cout << "Invalid shading option. Using Phong." << endl;
         shade = 0;
       }
@@ -185,8 +185,8 @@ int main(int argc, char* argv[]){
   //set camera space bounding box
   leftB = (-(float)imageWidth/imageHeight)/2.0f; //left of near plane
   rightB = ((float)imageWidth/imageHeight)/2.0f; //right of near plane
-  topB = -1/1.5f; //top of near plane
-  botB = 1/1.5f; //bottom of near plane
+  topB = 1/1.5f; //top of near plane
+  botB = -1/1.5f; //bottom of near plane
 
   //initialize depth buffer
   float depth[imageWidth][imageHeight];
@@ -224,9 +224,11 @@ int main(int argc, char* argv[]){
       }
       //sphere
       for(int size = 0; size < SphereList.size(); size++){
+        vec3 intersection = vec3(0);
         //if intersect
         if(SphereList[size]->intersect(ray,camera->loc,&t)){
           if(t < depth[x][y]){ //check depth
+            intersection = camera->loc + t*ray; //get point of intersection
             depth[x][y] = t; //update depth
             //using rgb color
             if(SphereList[size]->rgbColor != vec3(-1)){
@@ -235,10 +237,11 @@ int main(int argc, char* argv[]){
               clr.b = SphereList[size]->rgbColor.z;
             }
             //else using rgbf color
-            else if(SphereList[size]->rgbfColor != vec3(-1)){
+            else if(SphereList[size]->rgbfColor != vec4(-1)){
               clr.r = SphereList[size]->rgbfColor.x;
               clr.g = SphereList[size]->rgbfColor.y;
               clr.b = SphereList[size]->rgbfColor.z;
+              //need to do something with alpha value
             }
             //else invalid color
             else{
@@ -246,6 +249,7 @@ int main(int argc, char* argv[]){
             }
           }
           //set color
+          SphereList[size]->shade(ray,intersection,&clr,*light,0);
           img.pixel(x,y,clr);
         }
       }
@@ -255,9 +259,11 @@ int main(int argc, char* argv[]){
       }
       //plane
       for(int size = 0; size < PlaneList.size(); size++){
+        vec3 intersection = vec3(0);
         //if intersect
         if(PlaneList[size]->intersect(ray,camera->loc,&t)){
           if(t < depth[x][y]){ //check depth
+            intersection = camera->loc + t*ray; //get point of intersection
             depth[x][y] = t; //update depth
             //using rgb color
             if(PlaneList[size]->rgbColor != vec3(-1)){
@@ -266,10 +272,11 @@ int main(int argc, char* argv[]){
               clr.b = PlaneList[size]->rgbColor.z;
             }
             //else using rgbf color
-            else if(PlaneList[size]->rgbfColor != vec3(-1)){
+            else if(PlaneList[size]->rgbfColor != vec4(-1)){
               clr.r = PlaneList[size]->rgbfColor.x;
               clr.g = PlaneList[size]->rgbfColor.y;
               clr.b = PlaneList[size]->rgbfColor.z;
+              //need to do something with alpha value
             }
             //else invalid color
             else{
@@ -277,6 +284,7 @@ int main(int argc, char* argv[]){
             }
           }
           //set color
+          PlaneList[size]->shade(ray,intersection,&clr,*light,0);
           img.pixel(x,y,clr);
         }
       }

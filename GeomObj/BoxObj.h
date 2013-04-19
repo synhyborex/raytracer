@@ -9,7 +9,7 @@ class BoxObj: public GeomObj{
     ~BoxObj();
     virtual void parse(ifstream&);
     virtual bool intersect(vec3,vec3,float*);
-    virtual void shade();
+    virtual void shade(vec3,vec3,color_t*,Light,int);
     virtual void printID();
     vec3 getCorner(int);
     void setCorner(int, vec3);

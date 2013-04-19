@@ -3,7 +3,7 @@
 GeomObj::GeomObj(){
   objID = -1;
   rgbColor = vec3(-1); //-1 indicates color not present
-  rgbfColor = vec3(-1);
+  rgbfColor = vec4(-1);
   ambient = 0.0f;
   diffuse = 0.0f;
   specular = 0.0f;
@@ -19,7 +19,7 @@ GeomObj::GeomObj(){
 GeomObj::GeomObj(int id){
   objID = id;
   rgbColor = vec3(-1); //-1 indicates color not present
-  rgbfColor = vec3(-1);
+  rgbfColor = vec4(-1);
   ambient = 0.0f;
   diffuse = 0.0f;
   specular = 0.0f;

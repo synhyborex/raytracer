@@ -11,9 +11,7 @@
 #include "GeomObj/SphereObj.h"
 #include "GeomObj/BoxObj.h"
 #include "WorldObj/WorldObj.h"
-#include "WorldObj/Light.h"
 #include "WorldObj/Camera.h"
-#include "Image/Image.h"
 
 //scene objects
 Light* light;
