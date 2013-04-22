@@ -176,7 +176,7 @@ bool PlaneObj::intersect(vec3 ray, vec3 cam, float *t){
   }
 }
 void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
-  /*vec3 N = normalize(worldPos-loc); //normal vector
+  vec3 N = normalize(normal); //normal vector
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 R; //reflection vector
@@ -208,14 +208,15 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
 
   //specular calculations
   float tempS = std::max(dot(V,R),0.0f);
-  tempS = std::pow(tempS,roughness);
+  if(roughness > 0)
+    tempS = std::pow(tempS,roughness);
   specRed = specular*tempS*lightColor[0];
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
 
   clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
   clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;*/
+  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
 
   /*clr->r = clr->r*diffuseRed;
   clr->g = clr->g*diffuseBlue;

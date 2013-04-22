@@ -323,7 +323,8 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
 
   //specular calculations
   float tempS = std::max(dot(V,R),0.0f);
-  tempS = std::pow(tempS,roughness);
+  if(roughness > 0)
+    tempS = std::pow(tempS,roughness);
   specRed = specular*tempS*lightColor[0];
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
