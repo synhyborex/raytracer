@@ -200,6 +200,8 @@ int main(int argc, char* argv[]){
   //per pixel calculations
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image 
+      float t = INT_MAX; //interpolation value
+      
       //covert to camera space
       vec3 camSpace; //camera space coordinates
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
@@ -218,52 +220,13 @@ int main(int argc, char* argv[]){
       ray = normalize(ray);
 
       //per object calculations
-      //box
-      for(int size = 0; size < BoxList.size(); size++){
-        //do nothing for now
-      }
-      //sphere
-      for(int size = 0; size < SphereList.size(); size++){
-        vec3 intersection = vec3(0);
-        //if intersect
-        if(SphereList[size]->intersect(ray,camera->loc,&t)){
-          if(t < depth[x][y]){ //check depth
-            intersection = camera->loc + t*ray; //get point of intersection
-            depth[x][y] = t; //update depth
-            //using rgb color
-            if(SphereList[size]->rgbColor != vec3(-1)){
-              clr.r = SphereList[size]->rgbColor.x;
-              clr.g = SphereList[size]->rgbColor.y;
-              clr.b = SphereList[size]->rgbColor.z;
-            }
-            //else using rgbf color
-            else if(SphereList[size]->rgbfColor != vec4(-1)){
-              clr.r = SphereList[size]->rgbfColor.x;
-              clr.g = SphereList[size]->rgbfColor.y;
-              clr.b = SphereList[size]->rgbfColor.z;
-              //need to do something with alpha value
-            }
-            //else invalid color
-            else{
-              cout << "Invalid color." << endl;
-            }
-          }
-          //set color
-          SphereList[size]->shade(ray,intersection,&clr,*light,0);
-          img.pixel(x,y,clr);
-        }
-      }
-      //cone
-      for(int size = 0; size < ConeList.size(); size++){
-        //do nothing for now
-      }
       //plane
       for(int size = 0; size < PlaneList.size(); size++){
         vec3 intersection = vec3(0);
         //if intersect
         if(PlaneList[size]->intersect(ray,camera->loc,&t)){
+          intersection = camera->loc + t*ray; //get point of intersection
           if(t < depth[x][y]){ //check depth
-            intersection = camera->loc + t*ray; //get point of intersection
             depth[x][y] = t; //update depth
             //using rgb color
             if(PlaneList[size]->rgbColor != vec3(-1)){
@@ -284,9 +247,62 @@ int main(int argc, char* argv[]){
             }
           }
           //set color
-          PlaneList[size]->shade(ray,intersection,&clr,*light,0);
+          PlaneList[size]->shade(ray,intersection,&clr,*light,shade);
           img.pixel(x,y,clr);
         }
+      }
+      //box
+      for(int size = 0; size < BoxList.size(); size++){
+        //do nothing for now
+      }
+      //sphere
+      for(int size = 0; size < SphereList.size(); size++){
+        vec3 intersection = vec3(0);
+        //if intersect
+        if(SphereList[size]->intersect(ray,camera->loc,&t)){
+          intersection = camera->loc + t*ray; //get point of intersection
+          if(t < depth[x][y]){ //check depth
+            depth[x][y] = t; //update depth
+            //using rgb color
+            if(SphereList[size]->rgbColor != vec3(-1)){
+              clr.r = SphereList[size]->rgbColor.x;
+              clr.g = SphereList[size]->rgbColor.y;
+              clr.b = SphereList[size]->rgbColor.z;
+            }
+            //else using rgbf color
+            else if(SphereList[size]->rgbfColor != vec4(-1)){
+              clr.r = SphereList[size]->rgbfColor.x;
+              clr.g = SphereList[size]->rgbfColor.y;
+              clr.b = SphereList[size]->rgbfColor.z;
+              //need to do something with alpha value
+            }
+            //else invalid color
+            else{
+              cout << "Invalid color." << endl;
+            }
+          }
+          //set color
+          SphereList[size]->shade(ray,intersection,&clr,*light,shade);
+          img.pixel(x,y,clr);
+
+          //shadows
+          vec3 shadowRay = light->loc - intersection;
+          //loop over geomentry again
+          for(int loop = 0; loop < PlaneList.size(); loop++){
+            //if intersect
+            if(PlaneList[loop]->intersect(-shadowRay,intersection,&t)){
+              clr.r = 0;
+              clr.g = 0;
+              clr.b = 0;
+            }
+            //else PlaneList[size]->shade(ray,intersection,&clr,*light,0);
+            //img.pixel(x,y,clr);
+          }
+        }
+      }
+      //cone
+      for(int size = 0; size < ConeList.size(); size++){
+        //do nothing for now
       }
       //triangle
       for(int size = 0; size < TriList.size(); size++){

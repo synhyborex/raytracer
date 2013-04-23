@@ -26,7 +26,6 @@ ConeObj* cone;
 int imageWidth; //width of image
 int imageHeight; //height of image
 color_t clr; //color
-float t; //interpolation value
 float rightB, topB, botB, leftB; //camera space bounding box
 int shade; //the kind of shading
 

@@ -10,6 +10,7 @@
 #include "../glm/gtc/matrix_transform.hpp" //perspective, trans etc
 #include "../glm/gtc/type_ptr.hpp" //value_ptr
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 using namespace glm;

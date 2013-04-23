@@ -264,8 +264,8 @@ bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
   t2 = C / q;
 
   //solve for t
-  t1 = (-B + sqrt(disc))/2*A;
-  t2 = (-B - sqrt(disc))/2*A;
+  //t1 = (-B + sqrt(disc))/2*A;
+  //t2 = (-B - sqrt(disc))/2*A;
 
   //make sure t1 is smaller than t2
   if (t1 > t2){
@@ -294,6 +294,7 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
   vec3 N = normalize(worldPos-loc); //normal vector
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
+  vec3 H = normalize(L+V); //halfway vector
   vec3 R; //reflection vector
   vec4 lightColor; //color of light
   float diffuseRed, diffuseBlue, diffuseGreen;
@@ -322,13 +323,26 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
   //need to do something for alpha value
 
   //specular calculations
-  float tempS = std::max(dot(V,R),0.0f);
-  if(roughness > 0)
-    tempS = std::pow(tempS,roughness);
+  float tempS;
+  switch(shade){
+    case 0: //Phong
+      tempS = std::max(dot(V,R),0.0f);
+      if(roughness > 0.0f)
+        tempS = std::pow(tempS,1/roughness);
+      break;
+    case 1: //Gaussian
+      float theta;
+      if(roughness == 0.0f)
+        roughness += 0.00001;
+      theta = acos(dot(N,H)/(length(N)*length(H)));
+      tempS = exp(-pow(theta/roughness,2));
+      break;
+  }
   specRed = specular*tempS*lightColor[0];
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
 
+  //set color
   clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
   clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
   clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
