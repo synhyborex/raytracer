@@ -179,6 +179,7 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(normal); //normal vector
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
+  vec3 H = normalize(L+V); //halfway vector
   vec3 R; //reflection vector
   vec4 lightColor; //color of light
   float diffuseRed, diffuseBlue, diffuseGreen;
@@ -207,9 +208,21 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   //need to do something for alpha value
 
   //specular calculations
-  float tempS = std::max(dot(V,R),0.0f);
-  if(roughness > 0.0f)
-    tempS = std::pow(tempS,1/roughness);
+  float tempS;
+  switch(shade){
+    case 0: //Phong
+      tempS = std::max(dot(V,R),0.0f);
+      if(roughness > 0.0f)
+        tempS = std::pow(tempS,1/roughness);
+      break;
+    case 1: //Gaussian
+      float theta;
+      if(roughness == 0.0f)
+        roughness += 0.00001;
+      theta = acos(dot(N,H)/(length(N)*length(H)));
+      tempS = exp(-pow(theta/roughness,2));
+      break;
+  }
   specRed = specular*tempS*lightColor[0];
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];

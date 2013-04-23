@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
   else{
     cout << "No options chosen. Using default." << endl;
     error = true;
-    filename = "bunny_small.pov";
+    filename = "simple.pov";
     imageWidth = 640;
     imageHeight = 480;
   }
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]){
   //default case if dimensions, but no file option
   if(!fileAvail && !error){
     cout << "No filename found. Using default." << endl;
-    filename = "bunny_small.pov";
+    filename = "simple.pov";
   }
 
   //try opening file
@@ -145,31 +145,31 @@ int main(int argc, char* argv[]){
     //check if plane
     else if(!strcmp(nextString,"plane")){
       plane->parse(infile);
-      PlaneList.push_back(plane);
+      objList.push_back(plane);
       totalSize++;
     }
     //check if sphere
     else if(!strcmp(nextString,"sphere")){
       sphere->parse(infile);
-      SphereList.push_back(sphere);
+      objList.push_back(sphere);
       totalSize++;
     }
     //check if cone
     else if(!strcmp(nextString,"cone")){
       cone->parse(infile);
-      ConeList.push_back(cone);
+      objList.push_back(cone);
       totalSize++;
     }
     //check if box
     else if(!strcmp(nextString,"box")){
       box->parse(infile);
-      BoxList.push_back(box);
+      objList.push_back(box);
       totalSize++;
     }
     //check if triangle
     else if(!strcmp(nextString,"triangle")){
       tri->parse(infile);
-      TriList.push_back(tri);
+      objList.push_back(tri);
       totalSize++;
     }
   }
@@ -178,9 +178,10 @@ int main(int argc, char* argv[]){
   //demo purposes
   cout << "Size of list: " << totalSize << endl;
 
-  /**Image Processing**/
+  /**************Image Processing*******************/
   //create image object
-  Image img(imageWidth, imageHeight);
+  //Image img(imageWidth, imageHeight);
+  img = new Image(imageWidth, imageHeight);
 
   //set camera space bounding box
   leftB = (-(float)imageWidth/imageHeight)/2.0f; //left of near plane
@@ -188,19 +189,12 @@ int main(int argc, char* argv[]){
   topB = 1/1.5f; //top of near plane
   botB = -1/1.5f; //bottom of near plane
 
-  //initialize depth buffer
-  float depth[imageWidth][imageHeight];
-  //float bestT[imageWidth][imageHeight];
-  for (int i=0; i<imageWidth; i++){
-    for (int j=0; j<imageHeight; j++){
-      depth[i][j] = INT_MAX;
-    }
-  }
-
   //per pixel calculations
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image 
       float t = INT_MAX; //interpolation value
+      float minDist = INT_MAX; //smallest distance
+      int bestObj = -1; //closest object. -1 means no intersect
       
       //covert to camera space
       vec3 camSpace; //camera space coordinates
@@ -220,99 +214,52 @@ int main(int argc, char* argv[]){
       ray = normalize(ray);
 
       //per object calculations
-      //plane
-      for(int size = 0; size < PlaneList.size(); size++){
-        vec3 intersection = vec3(0);
+      for(int size = 0; size < objList.size(); size++){
         //if intersect
-        if(PlaneList[size]->intersect(ray,camera->loc,&t)){
-          intersection = camera->loc + t*ray; //get point of intersection
-          if(t < depth[x][y]){ //check depth
-            depth[x][y] = t; //update depth
-            //using rgb color
-            if(PlaneList[size]->rgbColor != vec3(-1)){
-              clr.r = PlaneList[size]->rgbColor.x;
-              clr.g = PlaneList[size]->rgbColor.y;
-              clr.b = PlaneList[size]->rgbColor.z;
-            }
-            //else using rgbf color
-            else if(PlaneList[size]->rgbfColor != vec4(-1)){
-              clr.r = PlaneList[size]->rgbfColor.x;
-              clr.g = PlaneList[size]->rgbfColor.y;
-              clr.b = PlaneList[size]->rgbfColor.z;
-              //need to do something with alpha value
-            }
-            //else invalid color
-            else{
-              cout << "Invalid color." << endl;
-            }
+        if(objList[size]->intersect(ray,camera->loc,&t)){
+          if(t < minDist){ //check depth
+            minDist = t; //update depth
+            bestObj = size; //update closest object
           }
-          //set color
-          PlaneList[size]->shade(ray,intersection,&clr,*light,shade);
-          img.pixel(x,y,clr);
         }
       }
-      //box
-      for(int size = 0; size < BoxList.size(); size++){
-        //do nothing for now
-      }
-      //sphere
-      for(int size = 0; size < SphereList.size(); size++){
-        vec3 intersection = vec3(0);
-        //if intersect
-        if(SphereList[size]->intersect(ray,camera->loc,&t)){
-          intersection = camera->loc + t*ray; //get point of intersection
-          if(t < depth[x][y]){ //check depth
-            depth[x][y] = t; //update depth
-            //using rgb color
-            if(SphereList[size]->rgbColor != vec3(-1)){
-              clr.r = SphereList[size]->rgbColor.x;
-              clr.g = SphereList[size]->rgbColor.y;
-              clr.b = SphereList[size]->rgbColor.z;
-            }
-            //else using rgbf color
-            else if(SphereList[size]->rgbfColor != vec4(-1)){
-              clr.r = SphereList[size]->rgbfColor.x;
-              clr.g = SphereList[size]->rgbfColor.y;
-              clr.b = SphereList[size]->rgbfColor.z;
-              //need to do something with alpha value
-            }
-            //else invalid color
-            else{
-              cout << "Invalid color." << endl;
-            }
-          }
-          //set color
-          SphereList[size]->shade(ray,intersection,&clr,*light,shade);
-          img.pixel(x,y,clr);
 
-          //shadows
-          vec3 shadowRay = light->loc - intersection;
-          //loop over geomentry again
-          for(int loop = 0; loop < PlaneList.size(); loop++){
-            //if intersect
-            if(PlaneList[loop]->intersect(-shadowRay,intersection,&t)){
-              clr.r = 0;
-              clr.g = 0;
-              clr.b = 0;
-            }
-            //else PlaneList[size]->shade(ray,intersection,&clr,*light,0);
-            //img.pixel(x,y,clr);
-          }
+      //figure out what to draw, if anything
+      if(bestObj != -1){ //valid object
+        vec3 intersection = camera->loc + minDist*ray;
+        //using rgb color
+        if(objList[bestObj]->rgbColor != vec3(-1)){
+          clr.r = objList[bestObj]->rgbColor.x;
+          clr.g = objList[bestObj]->rgbColor.y;
+          clr.b = objList[bestObj]->rgbColor.z;
         }
+        //else using rgbf color
+        else if(objList[bestObj]->rgbfColor != vec4(-1)){
+          clr.r = objList[bestObj]->rgbfColor.x;
+          clr.g = objList[bestObj]->rgbfColor.y;
+          clr.b = objList[bestObj]->rgbfColor.z;
+          //need to do something with alpha value
+        }
+        //else invalid color
+        else{
+          cout << "Invalid color." << endl;
+        }
+
+        //get color based on object
+        objList[bestObj]->shade(ray,intersection,&clr,*light,shade);
       }
-      //cone
-      for(int size = 0; size < ConeList.size(); size++){
-        //do nothing for now
+      else{ //no object to draw at that pixel
+        clr.r = 0;
+        clr.g = 0;
+        clr.b = 0;
       }
-      //triangle
-      for(int size = 0; size < TriList.size(); size++){
-        //do nothing for now
-      }
+      //set color of pixel
+      img->pixel(x,y,clr);  
     }
   }
 
   // write the targa file to disk
-  img.WriteTga((char *)"awesome.tga", true); 
+  img->WriteTga((char *)"awesome.tga", true); 
   // true to scale to max color, false to clamp to 1.0
 
   //free memory
@@ -324,6 +271,7 @@ int main(int argc, char* argv[]){
   delete tri;
   delete cone;
   delete box;
+  delete img;
 
   return 0;
 }

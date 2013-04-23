@@ -37,9 +37,12 @@ Image::~Image()
 
 void Image::WriteTga(char *outfile, bool scale_color)
 {
-    FILE *fp = fopen(outfile, "w");
-    if (fp == NULL)
-    {
+    //FILE *fp = fopen(outfile, "w");
+    FILE *fp;
+    if((fp = (FILE*)malloc(sizeof(FILE))) != NULL){
+        fp = fopen(outfile, "w");
+    }
+    else{
         perror("ERROR: Image::WriteTga() failed to open file for writing!\n");
         exit(EXIT_FAILURE);
     }

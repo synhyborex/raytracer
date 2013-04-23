@@ -23,6 +23,7 @@ TriObj* tri;
 ConeObj* cone;
 
 //image variables
+Image* img;
 int imageWidth; //width of image
 int imageHeight; //height of image
 color_t clr; //color
@@ -31,11 +32,7 @@ int shade; //the kind of shading
 
 //object storage variables
 int totalSize; //number of objects
-vector<BoxObj*> BoxList;
-vector<ConeObj*> ConeList;
-vector<PlaneObj*> PlaneList;
-vector<SphereObj*> SphereList;
-vector<TriObj*> TriList;
+vector<GeomObj*> objList;
 
 //file pointers
 ifstream infile;
