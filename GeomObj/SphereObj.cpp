@@ -29,7 +29,7 @@ void SphereObj::parse(ifstream &infile){
     loc.z = strtod(nextString,NULL); //set z position
 
   //radius option
-    infile >> nextString; //discard commas
+    infile.getline(nextString,20,','); //discard commas
     infile >> nextString; //get value
     radius = strtod(nextString,NULL); //set value
 
@@ -263,11 +263,16 @@ void SphereObj::parse(ifstream &infile){
   }
 }
 
-bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
-  //cam += loc;
+bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
+  vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
+  vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
+  for(int i = 0; i < ray.length(); i++){
+    ray[i] = ray2[i];
+    origin[i] = origin2[i];
+  }
   float A = dot(ray,ray);
-  float B = 2*dot(ray,cam-loc);
-  float C = dot(cam-loc,cam-loc)-(radius*radius);
+  float B = 2*dot(ray,origin-loc);
+  float C = dot(origin-loc,origin-loc)-(radius*radius);
   float disc = (B*B)-(4*A*C);
   float t1, t2;
 
@@ -286,10 +291,6 @@ bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
   // compute t1 and t2
   t1 = q / A;
   t2 = C / q;
-
-  //solve for t
-  //t1 = (-B + sqrt(disc))/2*A;
-  //t2 = (-B - sqrt(disc))/2*A;
 
   //make sure t1 is smaller than t2
   if (t1 > t2){
@@ -316,6 +317,10 @@ bool SphereObj::intersect(vec3 ray, vec3 cam, float *t){
 
 void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(worldPos-loc); //normal vector
+  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+  for(int i = 0; i < N.length(); i++){
+    N[i] = tempNorm[i];
+  }
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 H = normalize(L+V); //halfway vector
@@ -374,6 +379,10 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
 
 vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
   vec3 normal = origin - loc;
+  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+  for(int i = 0; i < normal.length(); i++){
+    normal[i] = tempNorm[i];
+  }
   return ray - 2*(dot(ray,normal))*normal;
 }
 

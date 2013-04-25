@@ -29,7 +29,7 @@ void ConeObj::parse(ifstream& infile){
     end1.z = strtod(nextString,NULL); //set z position
 
   //radius 1 option
-    infile >> nextString; //discard commas
+    infile.getline(nextString,20,','); //discard commas
     infile >> nextString; //get distance value
     rad1 = strtod(nextString,NULL); //set value 
 

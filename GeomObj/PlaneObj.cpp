@@ -29,7 +29,7 @@ void PlaneObj::parse(ifstream &infile){
     normal.z = strtod(nextString,NULL); //set z position
 
   //distance option
-    infile >> nextString; //discard commas
+    infile.getline(nextString,20,','); //discard commas
     infile >> nextString; //get distance value
     distance = strtod(nextString,NULL); //set value
 

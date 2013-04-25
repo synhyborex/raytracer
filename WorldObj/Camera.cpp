@@ -14,7 +14,7 @@ void Camera::parse(ifstream &infile){
     cout << "CAMERA - Could not allocate memory for next string" << endl;
   }
 
-  infile.getline(nextString,10); //skip rest of line
+  infile.getline(nextString,10,'{'); //skip rest of line
   while(strcmp(nextString,"}")){
     infile >> nextString; //get first string on line
 

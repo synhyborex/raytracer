@@ -77,7 +77,7 @@ color_t raytrace(vec3 ray, vec3 origin){
         }
       }
     }
-    vec3 intersection = origin + minDist*ray;
+    vec3 intersection = origin + 0.1f + minDist*ray;
 
     //figure out what to draw, if anything
     color_t shadeColor;

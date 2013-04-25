@@ -124,9 +124,10 @@ int main(int argc, char* argv[]){
 
   while(!infile.eof()){
     infile >> nextString; //get object type
+
     //check if comment
-    if(!strcmp(nextString,"//")){
-      infile.getline(nextString,100,'\n'); //ignore line
+    if(nextString[0] == '/'){
+      infile.getline(nextString,100); //ignore line
     }
     //check if camera
     else if(!strcmp(nextString,"camera")){

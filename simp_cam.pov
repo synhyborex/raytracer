@@ -17,20 +17,20 @@
 //}
 
 //camera pointing down negative x - case 2
-camera {
-location  <14, 0,0> 
-up        <0,  1,  0>
-right     <0, 0,  -1.3333>
-look_at   <0, 0, 0>
-}
-
-//camera pointing around 45 degrees
 //camera {
-//location  <7, 0,7> 
+//location  <14, 0,0> 
 //up        <0,  1,  0>
-//right     <.94, 0,  -.94>
+//right     <0, 0,  -1.3333>
 //look_at   <0, 0, 0>
 //}
+
+//camera pointing around 45 degrees
+camera {
+location  <7, 0,7> 
+up        <0,  1,  0>
+right     <.94, 0,  -.94>
+look_at   <0, 0, 0>
+}
 
 
 light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}
@@ -64,4 +64,3 @@ plane {<0, 1, 0>, -4
       pigment {color rgb <0.2, 0.6, 0.8>}
       finish {ambient 0.4 diffuse 0.8}
 }
-
