@@ -155,8 +155,6 @@ void PlaneObj::parse(ifstream &infile){
         }
       }
     }
-
-    infile >> nextString; //get rid of last '}'
 }
 
 bool PlaneObj::intersect(vec3 ray, vec3 cam, float *t){
@@ -230,10 +228,10 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
   clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
   clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+}
 
-  /*clr->r = clr->r*diffuseRed;
-  clr->g = clr->g*diffuseBlue;
-  clr->b = clr->b*diffuseGreen;*/
+vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
+  return ray - 2*(dot(ray,normal))*normal;
 }
 
 void PlaneObj::printID(){cout << "Plane " << objID << endl;};

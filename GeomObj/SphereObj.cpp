@@ -196,6 +196,9 @@ void SphereObj::parse(ifstream &infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         scale.z = strtod(nextString,NULL); //set z position
+
+        mat4 scaleMat = glm::scale(mat4(1.0f),scale);
+        composite = scaleMat*composite;
       }
       //translate
       else if(!strcmp(nextString,"translate")){
@@ -215,6 +218,9 @@ void SphereObj::parse(ifstream &infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         translate.z = strtod(nextString,NULL); //set z position
+
+        mat4 transMat = glm::translate(mat4(1.0f),translate);
+        composite = transMat*composite;
       }
       //rotate
       else if(!strcmp(nextString,"rotate")){
@@ -234,6 +240,24 @@ void SphereObj::parse(ifstream &infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         rotate.z = strtod(nextString,NULL); //set z position
+
+        float degree;
+        vec3 axis;
+        if(rotate.x != 0.0f){
+          degree = rotate.x;
+          axis = vec3(1,0,0);
+        }
+        else if(rotate.y != 0.0f){
+          degree = rotate.y;
+          axis = vec3(0,1,0);
+        }
+        else if(rotate.z != 0.0f){
+          degree = rotate.z;
+          axis = vec3(0,0,1);
+        }
+
+        mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
+        composite = rotMat*composite;
       }
     }
   }
@@ -346,10 +370,11 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
   clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
   clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
   clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+}
 
-  /*clr->r = clr->r*diffuseRed;
-  clr->g = clr->g*diffuseBlue;
-  clr->b = clr->b*diffuseGreen;*/
+vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
+  vec3 normal = origin - loc;
+  return ray - 2*(dot(ray,normal))*normal;
 }
 
 void SphereObj::printID(){cout << "Sphere " << objID << endl;};

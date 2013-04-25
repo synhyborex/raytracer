@@ -14,6 +14,7 @@ GeomObj::GeomObj(){
   vec3 translate = vec3(0); //0 indicates no transformation
   vec3 scale = vec3(0);
   vec3 rotate = vec3(0);
+  mat4 composite = mat4(1); //identity matrix
 }
 
 GeomObj::GeomObj(int id){
@@ -30,6 +31,7 @@ GeomObj::GeomObj(int id){
   vec3 translate = vec3(0); //0 indicates no transformation
   vec3 scale = vec3(0);
   vec3 rotate = vec3(0);
+  mat4 composite = mat4(1); //identity matrix
 }
 
 GeomObj::~GeomObj(){}

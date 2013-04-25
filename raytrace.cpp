@@ -5,12 +5,7 @@ int main(int argc, char* argv[]){
   totalSize = 0; //number of objects
   camera = new Camera(); //camera
   light = new Light(); //light
-  plane = new PlaneObj(); //plane
-  sphere = new SphereObj(); //sphere
-  tri = new TriObj(); //triangle
-  cone = new ConeObj(); //cone
-  box = new BoxObj(); //box
-  
+
   //initialize file variables
   bool fileAvail = false; //check for file option
 
@@ -94,7 +89,7 @@ int main(int argc, char* argv[]){
   else{
     cout << "No options chosen. Using default." << endl;
     error = true;
-    filename = "simple.pov";
+    filename = (char*)"simple.pov";
     imageWidth = 640;
     imageHeight = 480;
   }
@@ -108,7 +103,7 @@ int main(int argc, char* argv[]){
   //default case if dimensions, but no file option
   if(!fileAvail && !error){
     cout << "No filename found. Using default." << endl;
-    filename = "simple.pov";
+    filename = (char*)"simple.pov";
   }
 
   //try opening file
@@ -129,7 +124,6 @@ int main(int argc, char* argv[]){
 
   while(!infile.eof()){
     infile >> nextString; //get object type
-
     //check if comment
     if(!strcmp(nextString,"//")){
       infile.getline(nextString,100,'\n'); //ignore line
@@ -144,30 +138,35 @@ int main(int argc, char* argv[]){
     }
     //check if plane
     else if(!strcmp(nextString,"plane")){
+      plane = new PlaneObj();
       plane->parse(infile);
       objList.push_back(plane);
       totalSize++;
     }
     //check if sphere
     else if(!strcmp(nextString,"sphere")){
+      sphere = new SphereObj();
       sphere->parse(infile);
       objList.push_back(sphere);
       totalSize++;
     }
     //check if cone
     else if(!strcmp(nextString,"cone")){
+      cone = new ConeObj();
       cone->parse(infile);
       objList.push_back(cone);
       totalSize++;
     }
     //check if box
     else if(!strcmp(nextString,"box")){
+      box = new BoxObj();
       box->parse(infile);
       objList.push_back(box);
       totalSize++;
     }
     //check if triangle
     else if(!strcmp(nextString,"triangle")){
+      tri = new TriObj();
       tri->parse(infile);
       objList.push_back(tri);
       totalSize++;
@@ -191,11 +190,7 @@ int main(int argc, char* argv[]){
 
   //per pixel calculations
   for(int x = 0; x < imageWidth; x++){ //x of image
-    for(int y = 0; y < imageHeight; y++){ //y of image 
-      float t = INT_MAX; //interpolation value
-      float minDist = INT_MAX; //smallest distance
-      int bestObj = -1; //closest object. -1 means no intersect
-      
+    for(int y = 0; y < imageHeight; y++){ //y of image       
       //covert to camera space
       vec3 camSpace; //camera space coordinates
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
@@ -209,52 +204,18 @@ int main(int argc, char* argv[]){
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
       //create ray
-      vec3 ray; //ray to cast
+      vec3 origin = camera->loc; //ray origin
+      vec3 ray; //ray direction
       ray = worldSpace - camera->loc;
       ray = normalize(ray);
-
-      //per object calculations
-      for(int size = 0; size < objList.size(); size++){
-        //if intersect
-        if(objList[size]->intersect(ray,camera->loc,&t)){
-          if(t < minDist){ //check depth
-            minDist = t; //update depth
-            bestObj = size; //update closest object
-          }
-        }
-      }
-
-      //figure out what to draw, if anything
-      if(bestObj != -1){ //valid object
-        vec3 intersection = camera->loc + minDist*ray;
-        //using rgb color
-        if(objList[bestObj]->rgbColor != vec3(-1)){
-          clr.r = objList[bestObj]->rgbColor.x;
-          clr.g = objList[bestObj]->rgbColor.y;
-          clr.b = objList[bestObj]->rgbColor.z;
-        }
-        //else using rgbf color
-        else if(objList[bestObj]->rgbfColor != vec4(-1)){
-          clr.r = objList[bestObj]->rgbfColor.x;
-          clr.g = objList[bestObj]->rgbfColor.y;
-          clr.b = objList[bestObj]->rgbfColor.z;
-          //need to do something with alpha value
-        }
-        //else invalid color
-        else{
-          cout << "Invalid color." << endl;
-        }
-
-        //get color based on object
-        objList[bestObj]->shade(ray,intersection,&clr,*light,shade);
-      }
-      else{ //no object to draw at that pixel
-        clr.r = 0;
-        clr.g = 0;
-        clr.b = 0;
-      }
+      
       //set color of pixel
-      img->pixel(x,y,clr);  
+      recursionDepth = 6;
+      background.r = 0; //black
+      background.g = 0;
+      background.b = 0;
+      clr = raytrace(ray,origin);
+      img->pixel(x,y,clr);
     }
   }
 

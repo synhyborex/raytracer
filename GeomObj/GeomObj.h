@@ -20,11 +20,13 @@ class GeomObj{
     GeomObj();
     GeomObj(int id);
     ~GeomObj();
-    virtual void parse(ifstream&) =0;
-    virtual bool intersect(vec3,vec3,float*) =0;
-    virtual void shade(vec3,vec3,color_t*,Light,int) =0;
-    virtual void printID(){cout << "Geom " << objID << endl;};
-    virtual int getID(){return objID;};
+    virtual void parse(ifstream&) =0; //gets object info
+    virtual bool intersect(vec3,vec3,float*) =0; //checks for intersections
+    virtual void shade(vec3,vec3,color_t*,Light,int) =0; //colors the object
+    virtual void printID(){cout << "Geom " << objID << endl;}; //prints ID
+    virtual vec3 reflectedRay(vec3,vec3) =0; //returns reflected ray
+    virtual int getID(){return objID;}; //returns ID
+    virtual void setID(int id){objID = id;}; //sets object ID
 
     int objID; //object ID
     vec3 rgbColor; //rgb color
@@ -39,4 +41,5 @@ class GeomObj{
     vec3 translate; //amount to translate object
     vec3 scale; //amount to scale object
     vec3 rotate; //amount to rotate object
+    mat4 composite; //composite transformation matrix
 };
