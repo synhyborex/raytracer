@@ -1,6 +1,11 @@
 #include "raytrace.h"
 
 int main(int argc, char* argv[]){
+  //program run timers
+  clock_t t1, t2;
+  //start timer
+  t1 = clock();
+
   //initialize scene objects
   totalSize = 0; //number of objects
   camera = new Camera(); //camera
@@ -234,6 +239,18 @@ int main(int argc, char* argv[]){
   delete cone;
   delete box;
   delete img;
+
+  //end timer
+  t2 = clock();
+  //calculate run time
+  float diff = (float)t2 - (float)t1;
+  float seconds = diff / CLOCKS_PER_SEC;
+  int minutes = 0;
+  while(seconds-60 >= 0){
+    minutes++;
+    seconds -= 60;
+  }
+  printf("Program run time: %d minutes, %.3lf seconds\n",minutes,seconds);
 
   return 0;
 }

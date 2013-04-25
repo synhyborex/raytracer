@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 #include "GeomObj/GeomObj.h"
 #include "GeomObj/ConeObj.h"
 #include "GeomObj/PlaneObj.h"
@@ -64,6 +65,7 @@ color_t raytrace(vec3 ray, vec3 origin){
   float minDist = INT_MAX; //smallest distance
   int bestObj = -1; //closest object. -1 means no intersect
   float reflection; //object reflection coefficient
+  float epsilon = 1.00001f; //shadow offset
 
   recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
@@ -77,7 +79,7 @@ color_t raytrace(vec3 ray, vec3 origin){
         }
       }
     }
-    vec3 intersection = origin + 0.1f + minDist*ray;
+    vec3 intersection = (origin*epsilon) + minDist*ray;
 
     //figure out what to draw, if anything
     color_t shadeColor;
