@@ -179,6 +179,7 @@ int main(int argc, char* argv[]){
     }
   }
   cout << "File parsing complete." << endl;
+  infile.close(); //close file
 
   //demo purposes
   cout << "Size of list: " << totalSize << endl;
@@ -230,7 +231,6 @@ int main(int argc, char* argv[]){
   // true to scale to max color, false to clamp to 1.0
 
   //free memory
-  infile.close();
   delete camera;
   delete light;
   delete plane;

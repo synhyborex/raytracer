@@ -13,4 +13,4 @@ run:
 	g++ $(FLAGS) raytrace.cpp
 	g++ $(FLAGS) $(OBJECTS)
 	g++ *.o -o render
-	./render -Isimple.pov 1
+	./render -Isimple.pov 

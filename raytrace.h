@@ -65,24 +65,25 @@ color_t raytrace(vec3 ray, vec3 origin){
   float minDist = INT_MAX; //smallest distance
   int bestObj = -1; //closest object. -1 means no intersect
   float reflection; //object reflection coefficient
-  float epsilon = 1.00001f; //shadow offset
+  float epsilon = 0.000001f; //shadow offset
 
   recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
     //check primary ray against each object
-    for(int size = 0; size < objList.size(); size++){
+    for(int index = 0; index < objList.size(); index++){
       //if intersect
-      if(objList[size]->intersect(ray,origin,&t)){
-        if(t < minDist){ //check depth
+      if(objList[index]->intersect(ray,origin,&t)){
+        if(t > epsilon && t < minDist){ //check depth
           minDist = t; //update depth
-          bestObj = size; //update closest object
+          bestObj = index; //update closest object
         }
       }
     }
-    vec3 intersection = (origin*epsilon) + minDist*ray;
+    //calculate point of intersection
+    vec3 intersection = origin + minDist*ray;
 
     //figure out what to draw, if anything
-    color_t shadeColor;
+    color_t shadeColor; //light-based color contribution
     if(bestObj != -1){ //valid object
       //get base color
       //using rgb color
@@ -104,71 +105,48 @@ color_t raytrace(vec3 ray, vec3 origin){
       }
 
       //reflection
-      color_t reflColor;
-      reflection = objList[bestObj]->reflection;
-      if(reflection > 0.0f){
-        vec3 reflect = objList[bestObj]->reflectedRay(ray,intersection); //reflection vector
+      color_t reflColor; //reflection-based color contribution
+      reflection = objList[bestObj]->reflection; //get reflection value
+      if(reflection > 0.0f){ //the surface is reflective
+        //calculate reflection vector and recurse with it
+        vec3 reflect = objList[bestObj]->reflectedRay(ray,intersection);
         reflColor = raytrace(reflect,intersection);
       }
-      else{
+      else{ //no reflection
         reflColor = background;
       }
 
-      ///*
       //check for shadows
-      vec3 shadowRay = light->loc - intersection;
-      float interp; //linear interpolation value
-      bool shadow = false;
+      vec3 shadowRay = light->loc - intersection; //shadow vector
+      float tShadow; //range check
+      bool shadow = false; //no shadows
 
       //intersect shadow feeler with geometry
-      for(int size = 0; size < objList.size(); size++){
+      for(int index = 0; index < objList.size(); index++){
         //if intersection
-        if(objList[size]->intersect(shadowRay,intersection,&interp)){
+        if(objList[index]->intersect(shadowRay,
+          intersection+(shadowRay*epsilon),&tShadow)){
           shadow = true;
         }
       }
-      if(!shadow){
+      if(!shadow){ //no shadows
         objList[bestObj]->shade(ray,intersection,&shadeColor,*light,shade);
       }
-      else{
+      else{ //shadows
         //set to ambient color
         shadeColor.r = shadeColor.r*objList[bestObj]->ambient;
         shadeColor.g = shadeColor.g*objList[bestObj]->ambient;
         shadeColor.b = shadeColor.b*objList[bestObj]->ambient;
       }
-      //*/
-
-      /* softer-looking shadows
-      //set to ambient color
-      clr.r = clr.r*objList[bestObj]->ambient;
-      clr.g = clr.g*objList[bestObj]->ambient;
-      clr.b = clr.b*objList[bestObj]->ambient;
-
-      //check for shadows
-      vec3 intersection = camera->loc + minDist*ray;
-      vec3 shadowRay = light->loc - intersection;
-      float interp; //linear interpolation value
-
-      //intersect shadow feeler with geometry
-      for(int size = 0; size < objList.size(); size++){
-        //if no intersection or if t is out of range
-        if(!objList[size]->intersect(shadowRay,intersection,&interp)){
-          //full shading
-          objList[bestObj]->shade(ray,intersection,&clr,*light,shade);
-        }
-      }
-      */
 
       //update color with all values
       clr.r = (1-reflection)*shadeColor.r + reflection*reflColor.r;
       clr.g = (1-reflection)*shadeColor.g + reflection*reflColor.g;
       clr.b = (1-reflection)*shadeColor.b + reflection*reflColor.b;
     }
-    else{ //nothing to draw at that pixel
-      clr = background;
-    }
+    else clr = background; //nothing to draw at that pixel
   }
-  else clr = background;
+  else clr = background; //nothing to draw at that pixel
   recursionDepth++;
 
   return clr;
