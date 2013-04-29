@@ -182,7 +182,7 @@ int main(int argc, char* argv[]){
   infile.close(); //close file
 
   //demo purposes
-  cout << "Size of list: " << totalSize << endl;
+  cout << "Number of objects in the scene: " << totalSize << endl;
 
   /**************Image Processing*******************/
   //create image object
@@ -196,8 +196,11 @@ int main(int argc, char* argv[]){
   botB = -1/1.5f; //bottom of near plane
 
   //per pixel calculations
+  int timer = 0;
+  cout << "Rendering image. This may take a while..." << endl;
   for(int x = 0; x < imageWidth; x++){ //x of image
-    for(int y = 0; y < imageHeight; y++){ //y of image       
+    for(int y = 0; y < imageHeight; y++){ //y of image
+      //print loading stuff
       //covert to camera space
       vec3 camSpace; //camera space coordinates
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));

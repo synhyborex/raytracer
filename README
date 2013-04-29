@@ -1,3 +1,18 @@
-Neither test is fully working, unfortunately. I'm not really sure where the
-math went wrong, but they're both partially working. Changing the values
-inside the .pov file will result in different pictures.
+Everything should be working: reflection, shading, shadows, and transforms.
+
+If the binary won't execute, just type "make" and get a new one.
+
+To toggle shading modes, use a command line argument of the format
+./render <width> <height> -I<filename> <shading>
+where <shading> can be 0 for Phong, or 1 for Gaussian.
+Each <> flag is optional, as defaults have been set to
+<width> = 640
+<height> = 480
+-I<filename> = simple.pov
+<shading> = 0
+
+If while running the program you don't see the message "File parsing
+complete." but you do see "Successfully opened....", try taking out any
+extra blank space at the end of the .pov file. The last character in a
+.pov file should be '}'. Sometimes the blank spaces at the end make
+the file parsing indefinitely hang.
