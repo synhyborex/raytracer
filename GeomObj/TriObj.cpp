@@ -227,6 +227,10 @@ void TriObj::parse(ifstream& infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         scale.z = strtod(nextString,NULL); //set z position
+
+        //add transform to composite matrix
+        mat4 scaleMat = glm::scale(mat4(1.0f),scale);
+        composite = scaleMat*composite;
       }
       //translate
       else if(!strcmp(nextString,"translate")){
@@ -246,6 +250,10 @@ void TriObj::parse(ifstream& infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         translate.z = strtod(nextString,NULL); //set z position
+
+        //add transform to composite matrix
+        mat4 transMat = glm::translate(mat4(1.0f),translate);
+        composite = transMat*composite;
       }
       //rotate
       else if(!strcmp(nextString,"rotate")){
@@ -265,13 +273,126 @@ void TriObj::parse(ifstream& infile){
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         rotate.z = strtod(nextString,NULL); //set z position
+
+        //add transform to composite matrix
+        float degree;
+        vec3 axis;
+        if(rotate.x != 0.0f){
+          degree = rotate.x;
+          axis = vec3(1,0,0);
+        }
+        else if(rotate.y != 0.0f){
+          degree = rotate.y;
+          axis = vec3(0,1,0);
+        }
+        else if(rotate.z != 0.0f){
+          degree = rotate.z;
+          axis = vec3(0,0,1);
+        }
+
+        mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
+        composite = rotMat*composite;
       }
     }
   }
 }
 
-bool TriObj::intersect(vec3 ray, vec3 cam, float *t){return true;}
-void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){}
+bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
+  float gamma, beta; //boundary values
+  vec3 u = v1-v2;
+  vec3 v = v1-v3;
+  vec3 toTri = v1-origin;
+
+  //make matrices out of the above vectors
+  glm::mat3 A(u,v,ray);
+  glm::mat3 betaMat(toTri,v,ray);
+  glm::mat3 gammaMat(u,toTri,ray);
+
+  //Cramer's rule to get beta and gamma
+  float detA = determinant(A);
+  float detBeta = determinant(betaMat);
+  float detGamma = determinant(gammaMat);
+
+  beta = detBeta/detA;
+  if(beta < 0 || beta > 1) //check for validity
+    return false;
+
+  gamma = detGamma/detA;
+  if(gamma < 0 || gamma > 1) //check for validity
+    return false;
+
+  //make sure beta and gamma aren't too big
+  if(gamma+beta <= 1){
+    intersection = v1+(beta*(v2-v1))+(gamma*(v3-v1));
+    *t = detA;
+    return true;
+  }
+
+  return false;
+}
+
+void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
+  vec3 N = normalize(cross(v2-v1,v3-v1)); //normal vector
+  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+  for(int i = 0; i < N.length(); i++){
+    N[i] = tempNorm[i];
+  }
+  vec3 L = normalize((l.loc-worldPos)); //light vector
+  vec3 V = normalize(-ray); //view vector
+  vec3 H = normalize(L+V); //halfway vector
+  vec3 R; //reflection vector
+  vec4 lightColor; //color of light
+  float diffuseRed, diffuseBlue, diffuseGreen;
+  float specRed, specBlue, specGreen;
+
+  //get the color of the light
+  if(l.getRGBColor() != vec3(-1)){
+    lightColor = vec4(l.getRGBColor(),0.0f);
+  }
+  else if(l.getRGBFColor() != vec4(-1)){
+    lightColor = l.getRGBFColor();
+  }
+
+  //calculate R
+  R = vec3(-1.0 * L.x, -1.0 * L.y, -1.0 * L.z);
+  float temp = 2.0*dot(L,N);
+  vec3 tempR = vec3(temp * N.x, temp * N.y, temp * N.z);
+  R = vec3(R.x + tempR.x, R.y + tempR.y, R.z + tempR.z);
+  R = normalize(R);
+
+  //diffuse calculations
+  float tempD = std::max(dot(N,L),0.0f);
+  diffuseRed = diffuse*tempD*lightColor[0];
+  diffuseBlue = diffuse*tempD*lightColor[1];
+  diffuseGreen = diffuse*tempD*lightColor[2];
+  //need to do something for alpha value
+
+  //specular calculations
+  float tempS;
+  switch(shade){
+    case 0: //Phong
+      tempS = std::max(dot(V,R),0.0f);
+      if(roughness > 0.0f)
+        tempS = std::pow(tempS,1/roughness);
+      break;
+    case 1: //Gaussian
+      float theta;
+      if(roughness == 0.0f)
+        roughness += 0.00001;
+      theta = acos(dot(N,H)/(length(N)*length(H)));
+      tempS = exp(-pow(theta/roughness,2));
+      break;
+  }
+  specRed = specular*tempS*lightColor[0];
+  specBlue = specular*tempS*lightColor[1];
+  specGreen = specular*tempS*lightColor[2];
+
+  //set color
+  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
+  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
+  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+}
+
 vec3 TriObj::reflectedRay(vec3 ray, vec3 origin){
   return vec3(-1);
 }

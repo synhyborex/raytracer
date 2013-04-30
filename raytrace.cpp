@@ -144,35 +144,35 @@ int main(int argc, char* argv[]){
     }
     //check if plane
     else if(!strcmp(nextString,"plane")){
-      plane = new PlaneObj();
+      plane = new PlaneObj(1);
       plane->parse(infile);
       objList.push_back(plane);
       totalSize++;
     }
     //check if sphere
     else if(!strcmp(nextString,"sphere")){
-      sphere = new SphereObj();
+      sphere = new SphereObj(2);
       sphere->parse(infile);
       objList.push_back(sphere);
       totalSize++;
     }
     //check if cone
     else if(!strcmp(nextString,"cone")){
-      cone = new ConeObj();
+      cone = new ConeObj(3);
       cone->parse(infile);
       objList.push_back(cone);
       totalSize++;
     }
     //check if box
     else if(!strcmp(nextString,"box")){
-      box = new BoxObj();
+      box = new BoxObj(4);
       box->parse(infile);
       objList.push_back(box);
       totalSize++;
     }
     //check if triangle
     else if(!strcmp(nextString,"triangle")){
-      tri = new TriObj();
+      tri = new TriObj(5);
       tri->parse(infile);
       objList.push_back(tri);
       totalSize++;

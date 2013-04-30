@@ -64,7 +64,6 @@ color_t raytrace(vec3 ray, vec3 origin){
   float t = INT_MAX; //interpolation value
   float minDist = INT_MAX; //smallest distance
   int bestObj = -1; //closest object. -1 means no intersect
-  float reflection; //object reflection coefficient
   float epsilon = 0.000001f; //shadow offset
 
   recursionDepth--;
@@ -79,12 +78,17 @@ color_t raytrace(vec3 ray, vec3 origin){
         }
       }
     }
-    //calculate point of intersection
-    vec3 intersection = origin + minDist*ray;
 
     //figure out what to draw, if anything
     color_t shadeColor; //light-based color contribution
     if(bestObj != -1){ //valid object
+      //calculate point of intersection
+      vec3 intersection;
+      if(objList[bestObj]->objID == 5){
+        intersection = objList[bestObj]->intersection;
+      } 
+      else intersection = origin + minDist*ray;
+      
       //get base color
       //using rgb color
       if(objList[bestObj]->rgbColor != vec3(-1)){
@@ -106,7 +110,7 @@ color_t raytrace(vec3 ray, vec3 origin){
 
       //reflection
       color_t reflColor; //reflection-based color contribution
-      reflection = objList[bestObj]->reflection; //get reflection value
+      float reflection = objList[bestObj]->reflection; //reflection coeff
       if(reflection > 0.0f){ //the surface is reflective
         //calculate reflection vector and recurse with it
         vec3 reflect = objList[bestObj]->reflectedRay(ray,intersection);
@@ -115,6 +119,18 @@ color_t raytrace(vec3 ray, vec3 origin){
       else{ //no reflection
         reflColor = background;
       }
+
+      //refraction
+      /*color_t refrColor; //refraction-based color contribution
+      float refraction = objList[bestObj]->refraction; //refraction coeff
+      if(refraction > 0.0f){ //the surface is reflective
+        //calculate refraction vector and recurse with it
+        vec3 refract = objList[bestObj]->refractedRay(ray,intersection);
+        refrColor = raytrace(refract,intersection);
+      }
+      else{ //no reflection
+        refrColor = background;
+      }*/
 
       //check for shadows
       vec3 shadowRay = light->loc - intersection; //shadow vector

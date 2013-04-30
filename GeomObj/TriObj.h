@@ -13,10 +13,10 @@ class TriObj: public GeomObj{
     virtual vec3 reflectedRay(vec3,vec3);
     virtual void printID();
     vec3 getLoc(int);
-    void setLoc(int, vec3);
+    void setLoc(int,vec3);
+    vec3 getIntersect(){return triIntersect;};
 
   private:
-    vec3 v1;
-    vec3 v2;
-    vec3 v3;
+    vec3 v1, v2, v3; //triangle vertices
+    vec3 triIntersect; //intersection point on triangle
 };

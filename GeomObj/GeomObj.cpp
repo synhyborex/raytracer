@@ -15,6 +15,7 @@ GeomObj::GeomObj(){
   vec3 scale = vec3(0);
   vec3 rotate = vec3(0);
   mat4 composite = mat4(1); //identity matrix
+  intersection = vec3(0);
 }
 
 GeomObj::GeomObj(int id){
@@ -32,6 +33,7 @@ GeomObj::GeomObj(int id){
   vec3 scale = vec3(0);
   vec3 rotate = vec3(0);
   mat4 composite = mat4(1); //identity matrix
+  intersection = vec3(0);
 }
 
 GeomObj::~GeomObj(){}

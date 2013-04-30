@@ -197,6 +197,7 @@ void SphereObj::parse(ifstream &infile){
           nextString = nextString+1;
         scale.z = strtod(nextString,NULL); //set z position
 
+        //add transform to composite matrix
         mat4 scaleMat = glm::scale(mat4(1.0f),scale);
         composite = scaleMat*composite;
       }
@@ -219,6 +220,7 @@ void SphereObj::parse(ifstream &infile){
           nextString = nextString+1;
         translate.z = strtod(nextString,NULL); //set z position
 
+        //add transform to composite matrix
         mat4 transMat = glm::translate(mat4(1.0f),translate);
         composite = transMat*composite;
       }
@@ -241,6 +243,7 @@ void SphereObj::parse(ifstream &infile){
           nextString = nextString+1;
         rotate.z = strtod(nextString,NULL); //set z position
 
+        //add transform to composite matrix
         float degree;
         vec3 axis;
         if(rotate.x != 0.0f){
