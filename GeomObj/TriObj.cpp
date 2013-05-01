@@ -307,11 +307,13 @@ bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
   glm::mat3 A(u,v,ray);
   glm::mat3 betaMat(toTri,v,ray);
   glm::mat3 gammaMat(u,toTri,ray);
+  glm::mat3 tMat(u,v,toTri);
 
   //Cramer's rule to get beta and gamma
   float detA = determinant(A);
   float detBeta = determinant(betaMat);
   float detGamma = determinant(gammaMat);
+  float detT = determinant(tMat);
 
   beta = detBeta/detA;
   if(beta < 0 || beta > 1) //check for validity
@@ -323,8 +325,8 @@ bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
 
   //make sure beta and gamma aren't too big
   if(gamma+beta <= 1){
-    intersection = v1+(beta*(v2-v1))+(gamma*(v3-v1));
-    *t = detA;
+    intersection = v1+(beta*(u))+(gamma*(v));
+    *t = detT/detA;
     return true;
   }
 
