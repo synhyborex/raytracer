@@ -11,6 +11,7 @@ class ConeObj: public GeomObj{
     virtual bool intersect(vec3,vec3,float*);
     virtual void shade(vec3,vec3,color_t*,Light,int);
     virtual vec3 reflectedRay(vec3,vec3);
+    virtual vec3 refractedRay(vec3,vec3,float*, float*);
     virtual void printID();
     vec3 getLoc(int);
     void setLoc(int, vec3);

@@ -25,7 +25,7 @@ class GeomObj{
     virtual void shade(vec3,vec3,color_t*,Light,int) =0; //colors the object
     virtual void printID(){cout << "Geom " << objID << endl;}; //prints ID
     virtual vec3 reflectedRay(vec3,vec3) =0; //returns reflected ray
-    //virtual vec3 refractedRay(vec3,vec3); //returns refracted ray
+    virtual vec3 refractedRay(vec3,vec3,float*, float*) =0; //returns refracted ray
     virtual int getID(){return objID;}; //returns ID
     virtual void setID(int id){objID = id;}; //sets object ID
 

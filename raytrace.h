@@ -13,6 +13,7 @@
 #include "GeomObj/BoxObj.h"
 #include "WorldObj/WorldObj.h"
 #include "WorldObj/Camera.h"
+#include "Ray/Ray.h"
 
 //scene objects
 Light* light;
@@ -59,7 +60,7 @@ float world_to_pixel_y(float height, float width, float y){
   return e*y+f;
 }
 
-color_t raytrace(vec3 ray, vec3 origin){
+color_t raytrace(Ray ray){
   color_t clr; //color to return
   float t = INT_MAX; //interpolation value
   float minDist = INT_MAX; //smallest distance
@@ -71,7 +72,7 @@ color_t raytrace(vec3 ray, vec3 origin){
     //check primary ray against each object
     for(int index = 0; index < objList.size(); index++){
       //if intersect
-      if(objList[index]->intersect(ray,origin,&t)){
+      if(objList[index]->intersect(ray.dir,ray.orig,&t)){
         if(t > epsilon && t < minDist){ //check depth
           minDist = t; //update depth
           bestObj = index; //update closest object
@@ -87,7 +88,7 @@ color_t raytrace(vec3 ray, vec3 origin){
       if(objList[bestObj]->objID == 5){
         intersection = objList[bestObj]->intersection;
       } 
-      else intersection = origin + minDist*ray;
+      else intersection = ray.orig + minDist*ray.dir;
       
       //get base color
       //using rgb color
@@ -113,40 +114,52 @@ color_t raytrace(vec3 ray, vec3 origin){
       float reflection = objList[bestObj]->reflection; //reflection coeff
       if(reflection > 0.0f){ //the surface is reflective
         //calculate reflection vector and recurse with it
-        vec3 reflect = objList[bestObj]->reflectedRay(ray,intersection);
-        reflColor = raytrace(reflect,intersection);
+        Ray reflect(intersection,
+          objList[bestObj]->reflectedRay(ray.dir,intersection));
+        reflColor = raytrace(reflect); //recurse
       }
       else{ //no reflection
         reflColor = background;
       }
 
       //refraction
-      /*color_t refrColor; //refraction-based color contribution
+      color_t refrColor; //refraction-based color contribution
+      float cos_theta = -1.0f; //Schlick cos(theta) term
+      float R0 = -1.0f; //R0 for Schlick math
       float refraction = objList[bestObj]->refraction; //refraction coeff
-      if(refraction > 0.0f){ //the surface is reflective
-        //calculate refraction vector and recurse with it
-        vec3 refract = objList[bestObj]->refractedRay(ray,intersection);
-        refrColor = raytrace(refract,intersection);
+      if(refraction > 0.0f){ //the surface is refractive
+        //reflected ray
+        //Ray reflect2(intersection,
+          //objList[bestObj]->reflectedRay(ray.dir,intersection));
+
+        //calculate refraction vector
+        Ray refract(intersection,
+          objList[bestObj]->refractedRay(ray.dir,intersection,&cos_theta,&R0));
+
+        //check for valid ray
+        if(refract.dir == vec3(-1)) //total internal reflection
+          refrColor = background;
+        else refrColor = raytrace(refract);
       }
-      else{ //no reflection
+      else{ //no refraction
         refrColor = background;
-      }*/
+      }
 
       //check for shadows
-      vec3 shadowRay = light->loc - intersection; //shadow vector
+      Ray shadowRay(intersection,light->loc - intersection); //shadow vector
       float tShadow; //range check
       bool shadow = false; //no shadows
 
       //intersect shadow feeler with geometry
       for(int index = 0; index < objList.size(); index++){
         //if intersection
-        if(objList[index]->intersect(shadowRay,
-          intersection+(shadowRay*epsilon),&tShadow)){
+        if(objList[index]->intersect(shadowRay.dir,
+          shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
           shadow = true;
         }
       }
       if(!shadow){ //no shadows
-        objList[bestObj]->shade(ray,intersection,&shadeColor,*light,shade);
+        objList[bestObj]->shade(ray.dir,intersection,&shadeColor,*light,shade);
       }
       else{ //shadows
         //set to ambient color
@@ -155,10 +168,23 @@ color_t raytrace(vec3 ray, vec3 origin){
         shadeColor.b = shadeColor.b*objList[bestObj]->ambient;
       }
 
+      //Schlick's approximation
+      float R; //reflectance term
+      if(R0 == -1.0f || cos_theta == -1.0f){
+        R = 1.0f;
+      }
+      else R = R0 + (1-R0)*pow(1-cos_theta,5);
+
       //update color with all values
-      clr.r = (1-reflection)*shadeColor.r + reflection*reflColor.r;
-      clr.g = (1-reflection)*shadeColor.g + reflection*reflColor.g;
-      clr.b = (1-reflection)*shadeColor.b + reflection*reflColor.b;
+      /*clr.r = R*reflColor.r + (1-R)*refrColor.r;
+      clr.g = R*reflColor.g + (1-R)*refrColor.g;
+      clr.b = R*reflColor.b + (1-R)*refrColor.b;*/
+      clr.r = (1-reflection-refraction)*shadeColor.r + reflection*reflColor.r
+        + refraction*refrColor.r;
+      clr.g = (1-reflection-refraction)*shadeColor.g + reflection*reflColor.g
+        + refraction*refrColor.g;
+      clr.b = (1-reflection-refraction)*shadeColor.b + reflection*reflColor.b
+        + refraction*refrColor.b;
     }
     else clr = background; //nothing to draw at that pixel
   }

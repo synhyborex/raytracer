@@ -1,7 +1,7 @@
 OBJECTS=GeomObj/GeomObj.cpp GeomObj/SphereObj.cpp GeomObj/PlaneObj.cpp \
 	GeomObj/TriObj.cpp GeomObj/ConeObj.cpp GeomObj/BoxObj.cpp \
 	WorldObj/Camera.cpp WorldObj/Light.cpp WorldObj/WorldObj.cpp \
-	Image/Image.cpp
+	Image/Image.cpp Ray/Ray.cpp
 FLAGS=-c -g -pg
 
 default:

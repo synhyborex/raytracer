@@ -196,11 +196,10 @@ int main(int argc, char* argv[]){
   botB = -1/1.5f; //bottom of near plane
 
   //per pixel calculations
-  int timer = 0;
   cout << "Rendering image. This may take a while..." << endl;
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image
-      //print loading stuff
+      //print loading stuff (to do)
       //covert to camera space
       vec3 camSpace; //camera space coordinates
       camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
@@ -213,18 +212,17 @@ int main(int argc, char* argv[]){
         +(camSpace.y*camera->getUp())
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
-      //create ray
-      vec3 origin = camera->loc; //ray origin
-      vec3 ray; //ray direction
-      ray = worldSpace - camera->loc;
-      ray = normalize(ray);
+      //create primary ray
+      Ray primaryRay(camera->loc,
+        normalize(worldSpace - primaryRay.orig));
       
       //set color of pixel
       recursionDepth = 6;
+      //set background color
       background.r = 0; //black
       background.g = 0;
       background.b = 0;
-      clr = raytrace(ray,origin);
+      clr = raytrace(primaryRay);
       img->pixel(x,y,clr);
     }
   }

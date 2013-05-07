@@ -267,6 +267,9 @@ void ConeObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){}
 vec3 ConeObj::reflectedRay(vec3 ray, vec3 origin){
   return vec3(-1);
 }
+vec3 ConeObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
+  return vec3(-1);
+}
 void ConeObj::printID(){cout << "Cone " << objID << endl;};
 
 vec3 ConeObj::getLoc(int end){

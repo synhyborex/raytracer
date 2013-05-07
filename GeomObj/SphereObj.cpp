@@ -389,6 +389,40 @@ vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
   return ray - 2*(dot(ray,normal))*normal;
 }
 
+vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
+  vec3 normal = origin - loc;
+  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+  float n1, n2; //indicies of refraction
+  vec3 norm; //3-component version of transformed normal
+  for(int i = 0; i < norm.length(); i++){
+    norm[i] = tempNorm[i];
+  }
+  //into air out of obj
+  if(dot(ray,norm) < 0){
+    n1 = ior;
+    n2 = 1.0f;
+  }
+  //into obj out of air
+  else{
+    n1 = 1.0f;
+    n2 = ior;
+    norm = -norm;
+  }
+
+  //check value under sqrt
+  float disc = 1-(pow((n1/n2),2)*(1-pow(dot(ray,norm),2)));
+  if(disc < 0){
+    //disc *= -1;
+    //return vec3(-1);
+  }
+
+  //calculate values needed for Schlick
+  *cos = dot(ray,-norm);
+  *r0 = pow((n1-n2)/(n1+n2),2);
+
+  return (n1/n2)*(ray-norm*dot(ray,norm))-norm*sqrt(disc);
+}
+
 void SphereObj::printID(){cout << "Sphere " << objID << endl;};
 
 float SphereObj::getRadius(){return radius;}
