@@ -230,7 +230,8 @@ void TriObj::parse(ifstream& infile){
 
         //add transform to composite matrix
         mat4 scaleMat = glm::scale(mat4(1.0f),scale);
-        composite = scaleMat*composite;
+        if(scaleMat != mat4(1.0f))
+          composite = scaleMat*composite;
       }
       //translate
       else if(!strcmp(nextString,"translate")){
@@ -253,7 +254,8 @@ void TriObj::parse(ifstream& infile){
 
         //add transform to composite matrix
         mat4 transMat = glm::translate(mat4(1.0f),translate);
-        composite = transMat*composite;
+        if(transMat != mat4(1.0f))
+          composite = transMat*composite;
       }
       //rotate
       else if(!strcmp(nextString,"rotate")){
@@ -291,13 +293,22 @@ void TriObj::parse(ifstream& infile){
         }
 
         mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
-        composite = rotMat*composite;
+        if(rotMat != mat4(1.0f))
+          composite = rotMat*composite;
       }
     }
   }
 }
 
 bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
+  if(composite != mat4(1)){
+    vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
+    vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
+    for(int i = 0; i < ray.length(); i++){
+      ray[i] = ray2[i];
+      origin[i] = origin2[i];
+    }
+  }
   float gamma, beta; //boundary values
   vec3 u = v1-v2;
   vec3 v = v1-v3;
@@ -335,9 +346,11 @@ bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
 
 void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(cross(v2-v1,v3-v1)); //normal vector
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
-  for(int i = 0; i < N.length(); i++){
-    N[i] = tempNorm[i];
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+    for(int i = 0; i < N.length(); i++){
+      N[i] = tempNorm[i];
+    }
   }
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
@@ -397,23 +410,30 @@ void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
 
 vec3 TriObj::reflectedRay(vec3 ray, vec3 origin){
   vec3 normal = cross(v2-v1,v3-v1); //triangle normal
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
-  for(int i = 0; i < normal.length(); i++){
-    normal[i] = tempNorm[i];
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    for(int i = 0; i < normal.length(); i++){
+      normal[i] = tempNorm[i];
+    }
   }
+  ray = normalize(ray);
+  normal = normalize(normal);
   return ray - 2*(dot(ray,normal))*normal;
 }
 
 vec3 TriObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
-  vec3 normal = cross(v2-v1,v3-v1); //triangle normal
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
   float n1, n2; //indicies of refraction
-  vec3 norm; //3-component version of transformed normal
-  for(int i = 0; i < norm.length(); i++){
-    norm[i] = tempNorm[i];
+  vec3 normal = cross(v2-v1,v3-v1); //triangle normal
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    for(int i = 0; i < normal.length(); i++){
+      normal[i] = tempNorm[i];
+    }
   }
+  ray = normalize(ray);
+  normal = normalize(normal);
   //into air out of obj
-  if(dot(ray,norm) < 0){
+  if(dot(ray,normal) < 0){
     n1 = ior;
     n2 = 1.0f;
   }
@@ -421,20 +441,20 @@ vec3 TriObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
   else{
     n1 = 1.0f;
     n2 = ior;
-    norm = -norm;
+    normal = -normal;
   }
 
   //check value under sqrt
-  float disc = 1-(pow((n1/n2),2)*(1-pow(dot(ray,norm),2)));
+  float disc = 1-(pow((n1/n2),2)*(1-pow(dot(ray,normal),2)));
   if(disc < 0){
     return vec3(-1);
   }
 
   //calculate values needed for Schlick
-  *cos = dot(ray,-norm);
+  *cos = dot(ray,-normal);
   *r0 = pow((n1-n2)/(n1+n2),2);
 
-  return (n1/n2)*(ray-norm*dot(ray,norm))-norm*sqrt(disc);
+  return (n1/n2)*(ray-normal*dot(ray,normal))-normal*sqrt(disc);
 }
 
 void TriObj::printID(){cout << "Tri " << objID << endl;};

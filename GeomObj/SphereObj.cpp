@@ -199,7 +199,8 @@ void SphereObj::parse(ifstream &infile){
 
         //add transform to composite matrix
         mat4 scaleMat = glm::scale(mat4(1.0f),scale);
-        composite = scaleMat*composite;
+        if(scaleMat != mat4(1.0f))
+          composite = scaleMat*composite;
       }
       //translate
       else if(!strcmp(nextString,"translate")){
@@ -222,22 +223,23 @@ void SphereObj::parse(ifstream &infile){
 
         //add transform to composite matrix
         mat4 transMat = glm::translate(mat4(1.0f),translate);
-        composite = transMat*composite;
+        if(transMat != mat4(1.0f))
+          composite = transMat*composite;
       }
       //rotate
       else if(!strcmp(nextString,"rotate")){
         infile.getline(nextString,10,'<'); //go to first value
-        //scale on x axis
+        //rotate on x axis
         infile.getline(nextString,25,','); //go until first comma
         rotate.x = strtod(nextString,NULL); //set x position
 
-        //scale on y axis
+        //rotate on y axis
         infile.getline(nextString,25,','); //go until second comma
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
         rotate.y = strtod(nextString,NULL); //set y position
 
-        //scale on z axis
+        //rotate on z axis
         infile.getline(nextString,25,'>'); //go until end of line
         while(nextString[0] == ' ') //get to value
           nextString = nextString+1;
@@ -260,18 +262,21 @@ void SphereObj::parse(ifstream &infile){
         }
 
         mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
-        composite = rotMat*composite;
+        if(rotMat != mat4(1.0f))
+          composite = rotMat*composite;
       }
     }
   }
 }
 
 bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
-  vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
-  vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
-  for(int i = 0; i < ray.length(); i++){
-    ray[i] = ray2[i];
-    origin[i] = origin2[i];
+  if(composite != mat4(1)){
+    vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
+    vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
+    for(int i = 0; i < ray.length(); i++){
+      ray[i] = ray2[i];
+      origin[i] = origin2[i];
+    }
   }
   float A = dot(ray,ray);
   float B = 2*dot(ray,origin-loc);
@@ -320,9 +325,11 @@ bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
 
 void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(worldPos-loc); //normal vector
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
-  for(int i = 0; i < N.length(); i++){
-    N[i] = tempNorm[i];
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+    for(int i = 0; i < N.length(); i++){
+      N[i] = tempNorm[i];
+    }
   }
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
@@ -382,45 +389,54 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
 
 vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
   vec3 normal = origin - loc;
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
-  for(int i = 0; i < normal.length(); i++){
-    normal[i] = tempNorm[i];
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    for(int i = 0; i < normal.length(); i++){
+      normal[i] = tempNorm[i];
+    }
   }
+  ray = normalize(ray);
+  normal = normalize(normal);
   return ray - 2*(dot(ray,normal))*normal;
 }
 
 vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
-  vec3 normal = origin - loc;
-  vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
   float n1, n2; //indicies of refraction
-  vec3 norm; //3-component version of transformed normal
-  for(int i = 0; i < norm.length(); i++){
-    norm[i] = tempNorm[i];
+  vec3 normal = origin - loc;
+  if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    for(int i = 0; i < normal.length(); i++){
+      normal[i] = tempNorm[i];
+    }
   }
+  ray = normalize(ray);
+  normal = normalize(normal);
   //into air out of obj
-  if(dot(ray,norm) < 0){
+  if(dot(ray,normal) < 0){
     n1 = ior;
     n2 = 1.0f;
+    *cos = dot(ray,-normal);
   }
   //into obj out of air
   else{
     n1 = 1.0f;
     n2 = ior;
-    norm = -norm;
-  }
-
-  //check value under sqrt
-  float disc = 1-(pow((n1/n2),2)*(1-pow(dot(ray,norm),2)));
-  if(disc < 0){
-    //disc *= -1;
-    //return vec3(-1);
+    *cos = dot(ray,normal);
+    normal = -normal;
   }
 
   //calculate values needed for Schlick
-  *cos = dot(ray,-norm);
-  *r0 = pow((n1-n2)/(n1+n2),2);
+  //*cos = dot(ray,-normal);
+  //*r0 = pow((n1-n2)/(n1+n2),2);
 
-  return (n1/n2)*(ray-norm*dot(ray,norm))-norm*sqrt(disc);
+  //check value under sqrt
+  float n = n1/n2;
+  float disc = 1-(pow(n,2)*(1-pow(*cos,2)));
+  if(disc < 0){ //total internal reflection
+    return ray - 2*-(*cos)*normal; //reflection vector
+  }
+
+  return (n*ray)+(((n*(*cos))-sqrt(disc))*normal);
 }
 
 void SphereObj::printID(){cout << "Sphere " << objID << endl;};

@@ -213,8 +213,7 @@ int main(int argc, char* argv[]){
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
       //create primary ray
-      Ray primaryRay(camera->loc,
-        normalize(worldSpace - primaryRay.orig));
+      Ray primaryRay(camera->loc,worldSpace - primaryRay.orig);
       
       //set color of pixel
       recursionDepth = 6;
@@ -251,7 +250,162 @@ int main(int argc, char* argv[]){
     minutes++;
     seconds -= 60;
   }
-  printf("Program run time: %d minutes, %.3lf seconds\n",minutes,seconds);
+  printf("Program run time: %d minutes, %.2lf seconds\n",minutes,seconds);
 
   return 0;
+}
+
+float world_to_pixel_x(float height, float width, float x){
+  float d = (width-1)/2;
+  float c = d;
+
+  return (c*x+d)*height/width; //adjust for scaling
+}
+
+float world_to_pixel_y(float height, float width, float y){
+  float f = (height-1)/2;
+  float e = f;
+
+  return e*y+f;
+}
+
+color_t raytrace(Ray ray){
+  color_t clr; //color to return
+  float t = INT_MAX; //interpolation value
+  float minDist = INT_MAX; //smallest distance
+  int bestObj = -1; //closest object. -1 means no intersect
+  float epsilon = 0.0001f; //self-avoidance offset
+
+  recursionDepth--;
+  if(recursionDepth >= 0){ //still more recursions to go
+    //check primary ray against each object
+    for(int index = 0; index < objList.size(); index++){
+      //if intersect
+      if(objList[index]->intersect(ray.dir,ray.orig,&t)){
+        if(t > epsilon && t < minDist){ //check depth
+          minDist = t; //update depth
+          bestObj = index; //update closest object
+        }
+      }
+    }
+
+    //figure out what to draw, if anything
+    color_t shadeColor; //light-based color contribution
+    if(bestObj != -1){ //valid object
+      //calculate point of intersection
+      vec3 intersection;
+      if(objList[bestObj]->objID == 5){
+        intersection = objList[bestObj]->intersection;
+      } 
+      else intersection = ray.orig + minDist*ray.dir;
+      
+      //get base color
+      //using rgb color
+      if(objList[bestObj]->rgbColor != vec3(-1)){
+        shadeColor.r = objList[bestObj]->rgbColor.x;
+        shadeColor.g = objList[bestObj]->rgbColor.y;
+        shadeColor.b = objList[bestObj]->rgbColor.z;
+        shadeColor.f = 0.0f;
+      }
+      //using rgbf color
+      else if(objList[bestObj]->rgbfColor != vec4(-1)){
+        shadeColor.r = objList[bestObj]->rgbfColor.x;
+        shadeColor.g = objList[bestObj]->rgbfColor.y;
+        shadeColor.b = objList[bestObj]->rgbfColor.z;
+        shadeColor.f = objList[bestObj]->rgbfColor[3];
+      }
+      //else invalid color
+      else{
+        cout << "Invalid color." << endl;
+      }
+
+      //reflection
+      color_t reflColor; //reflection-based color contribution
+      float reflection = objList[bestObj]->reflection; //reflection coeff
+      if(reflection > 0.0f){ //the surface is reflective
+        //calculate reflection vector
+        Ray reflect(intersection,
+          objList[bestObj]->reflectedRay(ray.dir,intersection));
+        //recurse
+        reflColor = raytrace(reflect); //recurse
+      }
+      else{ //no reflection
+        reflColor = background;
+      }
+
+      //refraction
+      color_t refrColor; //refraction-based color contribution
+      float cos_theta = -1.0f; //Schlick cos(theta) term
+      float R0 = -1.0f; //R0 for Schlick math
+      float refraction = objList[bestObj]->refraction; //refraction coeff
+      if(refraction > 0.0f){ //the surface is refractive
+        //calculate refraction vector
+        Ray refract(intersection,
+          objList[bestObj]->refractedRay(
+            ray.dir,intersection,&cos_theta,&R0));
+        //recurse
+        refrColor = raytrace(refract);
+      }
+      else{ //no refraction
+        refrColor = background;
+      }
+
+      //check for shadows
+      Ray shadowRay(intersection,light->loc - intersection); //shadow vector
+      float tShadow; //range check
+      bool shadow = false; //no shadows
+
+      //intersect shadow feeler with geometry
+      for(int index = 0; index < objList.size(); index++){
+        //if intersection
+        if(objList[index]->intersect(shadowRay.dir,
+          shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
+          shadow = true;
+          break;
+        }
+      }
+      if(!shadow){ //no shadows
+        objList[bestObj]->shade(ray.dir,intersection,&shadeColor,*light,shade);
+      }
+      else{ //shadows
+        //set to ambient color
+        shadeColor.r = shadeColor.r*objList[bestObj]->ambient;
+        shadeColor.g = shadeColor.g*objList[bestObj]->ambient;
+        shadeColor.b = shadeColor.b*objList[bestObj]->ambient;
+      }
+
+      //Schlick's approximation
+      /*float R; //reflectance term
+      if(R0 == -1.0f || cos_theta == -1.0f){
+        R = 1.0f;
+      }
+      else R = R0 + (1-R0)*pow(1-cos_theta,5);*/
+
+      //update color with all values
+      //Schlick
+      /*clr.r = R*reflColor.r + (1-R)*refrColor.r;
+      clr.g = R*reflColor.g + (1-R)*refrColor.g;
+      clr.b = R*reflColor.b + (1-R)*refrColor.b;*/
+
+      //local color
+      clr.r = (1-reflection-shadeColor.f)*shadeColor.r;
+      clr.g = (1-reflection-shadeColor.f)*shadeColor.g;
+      clr.b = (1-reflection-shadeColor.f)*shadeColor.b;
+
+      //reflection
+      clr.r += reflection*reflColor.r;
+      clr.g += reflection*reflColor.g;
+      clr.b += reflection*reflColor.b;
+
+      //refraction
+      clr.r += shadeColor.f*refrColor.r;
+      clr.g += shadeColor.f*refrColor.g;
+      clr.b += shadeColor.f*refrColor.b;
+    }
+    else clr = background; //nothing to draw at that pixel
+  }
+  else clr = background; //nothing to draw at that pixel
+  recursionDepth++;
+
+  return clr;
 }
