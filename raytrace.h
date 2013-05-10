@@ -39,6 +39,7 @@ int recursionDepth; //how many times to recurse
 //object storage variables
 int totalSize; //number of objects
 vector<GeomObj*> objList;
+vector<Light*> lightList;
 
 //file pointers
 ifstream infile;

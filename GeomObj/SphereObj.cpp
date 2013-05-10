@@ -395,12 +395,12 @@ vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
       normal[i] = tempNorm[i];
     }
   }
-  ray = normalize(ray);
-  normal = normalize(normal);
+  //ray = normalize(ray);
+  //normal = normalize(normal);
   return ray - 2*(dot(ray,normal))*normal;
 }
 
-vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
+vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
   float n1, n2; //indicies of refraction
   vec3 normal = origin - loc;
   if(composite != mat4(1)){
@@ -409,34 +409,35 @@ vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
       normal[i] = tempNorm[i];
     }
   }
-  ray = normalize(ray);
-  normal = normalize(normal);
-  //into air out of obj
-  if(dot(ray,normal) < 0){
-    n1 = ior;
-    n2 = 1.0f;
-    *cos = dot(ray,-normal);
-  }
+  //ray = normalize(ray);
+  //normal = normalize(normal);
   //into obj out of air
-  else{
+  if(dot(ray,normal) < 0){
     n1 = 1.0f;
     n2 = ior;
-    *cos = dot(ray,normal);
+    //normal = -normal;
+  }
+  //into air out of obj
+  else{
+    n1 = ior;
+    n2 = 1.0f;  
     normal = -normal;
   }
 
   //calculate values needed for Schlick
-  //*cos = dot(ray,-normal);
+  *cos = dot(ray,-normal);
   //*r0 = pow((n1-n2)/(n1+n2),2);
 
   //check value under sqrt
-  float n = n1/n2;
-  float disc = 1-(pow(n,2)*(1-pow(*cos,2)));
+  float nRatio = n1/n2;
+  float disc = 1-(pow(nRatio,2)*(1-pow(*cos,2)));
   if(disc < 0){ //total internal reflection
+    *offsetOrig = origin + normal*.01f; //set offset origin
     return ray - 2*-(*cos)*normal; //reflection vector
   }
 
-  return (n*ray)+(((n*(*cos))-sqrt(disc))*normal);
+  *offsetOrig = origin - normal*.01f; //set offset origin
+  return (nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal);
 }
 
 void SphereObj::printID(){cout << "Sphere " << objID << endl;};

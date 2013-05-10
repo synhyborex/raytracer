@@ -35,29 +35,34 @@ look_at   <0, 0, 0>
 
 light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}
 
-sphere { <-3.5, 0, 0>, 1
+sphere { <0, 0, 0>, 1
   pigment { color rgb <1.0, 0.0, 1.0>}
-  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 1.0}
+  finish {ambient 0.2 diffuse 0.4 reflection 0.2}
+  translate <-3.5, 0, 0>
 }
 
-sphere { <1, 0, 0>,1.5 
+sphere { <0, 0, 0>,1.5 
   pigment { color rgb <0.0, 1.0, 1.0>}
-  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 1.0}
+  finish {ambient 0.0 diffuse 0.8 reflection 0.8}
+  translate <1, 0, 0>
 }
 
-sphere { <-2.5, 0, -4>,2 
+sphere { <0, 0, 0>,2 
   pigment { color rgb <1.0, 1.0, 0.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 0.9}
+  translate <-2.5, 0, -4>
 }
 
-sphere { <2.8, 0, -4>, 2.5
+sphere { <0, 0, 0>, 2.5
   pigment { color rgb <0.1, 1.0, 0.5>}
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 0.7}
+  translate <2.8, 0, -4>
 }
 
-sphere { <0, 4, 0>, 1.1 
+sphere { <0, 0, 0>, 1.1 
   pigment { color rgb <0.1, 0.1, 1.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 0.4}
+  translate <0, 4, 0>
 }
 
 plane {<0, 1, 0>, -4

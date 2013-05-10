@@ -347,7 +347,7 @@ vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
   return ray - 2*(dot(ray,norm))*norm;
 }
 
-vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
+vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
   float n1, n2; //indicies of refraction
   vec3 norm = normal; //3-component version of transformed normal
   if(composite != mat4(1)){
@@ -356,31 +356,35 @@ vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, float *cos, float *r0){
       norm[i] = tempNorm[i];
     }
   }
-  ray = normalize(ray);
-  normal = normalize(normal);
-  //into air out of obj
-  if(dot(ray,norm) < 0){
-    n1 = ior;
-    n2 = 1.0f;
-  }
+  //ray = normalize(ray);
+  //normal = normalize(normal);
   //into obj out of air
-  else{
+  if(dot(ray,normal) < 0){
     n1 = 1.0f;
     n2 = ior;
-    norm = -norm;
+    //normal = -normal;
   }
-
-  //check value under sqrt
-  float disc = 1-(pow((n1/n2),2)*(1-pow(dot(ray,norm),2)));
-  if(disc < 0){
-    return vec3(-1);
+  //into air out of obj
+  else{
+    n1 = ior;
+    n2 = 1.0f;  
+    normal = -normal;
   }
 
   //calculate values needed for Schlick
-  *cos = dot(ray,-norm);
-  *r0 = pow((n1-n2)/(n1+n2),2);
+  *cos = dot(ray,-normal);
+  //*r0 = pow((n1-n2)/(n1+n2),2);
 
-  return ((n1/n2)*(ray-(norm*dot(ray,norm))))-(norm*sqrt(disc));
+  //check value under sqrt
+  float nRatio = n1/n2;
+  float disc = 1-(pow(nRatio,2)*(1-pow(*cos,2)));
+  if(disc < 0){ //total internal reflection
+    *offsetOrig = origin + normal*.01f; //set offset origin
+    return ray - 2*-(*cos)*normal; //reflection vector
+  }
+
+  *offsetOrig = origin - normal*.01f; //set offset origin
+  return (nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal);
 }
 
 void PlaneObj::printID(){cout << "Plane " << objID << endl;};

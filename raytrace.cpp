@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
 
   //holds next string in file
   char* nextString;
-  if((nextString = (char*)malloc(100)) == NULL){
+  if((nextString = (char*)malloc(150)) == NULL){
     cout << "Could not allocate memory for next string" << endl;
   }
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]){
 
     //check if comment
     if(nextString[0] == '/'){
-      infile.getline(nextString,100); //ignore line
+      infile.getline(nextString,150); //ignore line
     }
     //check if camera
     else if(!strcmp(nextString,"camera")){
@@ -140,7 +140,9 @@ int main(int argc, char* argv[]){
     }
     //check if light
     else if(!strcmp(nextString,"light_source")){
+      light = new Light();
       light->parse(infile);
+      lightList.push_back(light);
     }
     //check if plane
     else if(!strcmp(nextString,"plane")){
@@ -182,6 +184,7 @@ int main(int argc, char* argv[]){
   infile.close(); //close file
 
   //demo purposes
+  cout << "Number of lights in the scene: " << lightList.size() << endl;
   cout << "Number of objects in the scene: " << totalSize << endl;
 
   /**************Image Processing*******************/
@@ -337,12 +340,15 @@ color_t raytrace(Ray ray){
       color_t refrColor; //refraction-based color contribution
       float cos_theta = -1.0f; //Schlick cos(theta) term
       float R0 = -1.0f; //R0 for Schlick math
+      vec3 offsetOrig = vec3(0); //origin offset based on ray
       float refraction = objList[bestObj]->refraction; //refraction coeff
       if(refraction > 0.0f){ //the surface is refractive
         //calculate refraction vector
         Ray refract(intersection,
           objList[bestObj]->refractedRay(
-            ray.dir,intersection,&cos_theta,&R0));
+            ray.dir,intersection,&offsetOrig,&cos_theta,&R0));
+        //update origin based on which way the ray went
+        refract.orig = offsetOrig;
         //recurse
         refrColor = raytrace(refract);
       }
