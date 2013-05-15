@@ -216,14 +216,14 @@ int main(int argc, char* argv[]){
         +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
       //create primary ray
-      Ray primaryRay(camera->loc,worldSpace - primaryRay.orig);
+      Ray primaryRay(camera->loc,worldSpace - camera->loc);
       
-      //set color of pixel
+      //set recursion depth
       recursionDepth = 6;
       //set background color
-      background.r = 0; //black
-      background.g = 0;
-      background.b = 0;
+      background.r = 0.745; //gray
+      background.g = 0.745;
+      background.b = 0.745;
       clr = raytrace(primaryRay);
       img->pixel(x,y,clr);
     }
@@ -277,7 +277,7 @@ color_t raytrace(Ray ray){
   float t = INT_MAX; //interpolation value
   float minDist = INT_MAX; //smallest distance
   int bestObj = -1; //closest object. -1 means no intersect
-  float epsilon = 0.0001f; //self-avoidance offset
+  float epsilon = 0.01f; //self-avoidance offset
 
   recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
@@ -356,33 +356,37 @@ color_t raytrace(Ray ray){
         refrColor = background;
       }
 
-      //check for shadows
-      Ray shadowRay(intersection,light->loc - intersection); //shadow vector
-      float tShadow; //range check
-      bool shadow = false; //no shadows
+      //multiple lights
+      /**IN PROGRESS**/
+      for(int lightIdx = 0; lightIdx < lightList.size(); lightIdx++){
+        //check for shadows
+        Ray shadowRay(intersection,light->loc - intersection); //shadow vector
+        float tShadow = -INT_MAX; //range check
+        bool shadow = false; //no shadows
 
-      //intersect shadow feeler with geometry
-      for(int index = 0; index < objList.size(); index++){
-        //if intersection
-        if(objList[index]->intersect(shadowRay.dir,
-          shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
-          shadow = true;
-          break;
+        //intersect shadow feeler with geometry
+        for(int index = 0; index < objList.size(); index++){
+          //if intersection
+          if(objList[index]->intersect(shadowRay.dir,
+            shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
+            shadow = true;
+            break;
+          }
         }
-      }
-      if(!shadow){ //no shadows
-        objList[bestObj]->shade(ray.dir,intersection,&shadeColor,*light,shade);
-      }
-      else{ //shadows
-        //set to ambient color
-        shadeColor.r = shadeColor.r*objList[bestObj]->ambient;
-        shadeColor.g = shadeColor.g*objList[bestObj]->ambient;
-        shadeColor.b = shadeColor.b*objList[bestObj]->ambient;
+        if(!shadow){ //no shadows
+          objList[bestObj]->shade(ray.dir,intersection,&shadeColor,*light,shade);
+        }
+        else{ //shadows
+          //set to ambient color
+          shadeColor.r = shadeColor.r*objList[bestObj]->ambient;
+          shadeColor.g = shadeColor.g*objList[bestObj]->ambient;
+          shadeColor.b = shadeColor.b*objList[bestObj]->ambient;
+        }
       }
 
       //Schlick's approximation
       /*float R; //reflectance term
-      if(R0 == -1.0f || cos_theta == -1.0f){
+      if(R0 == -1.0f || cos_theta == -1.0f){ //no refraction
         R = 1.0f;
       }
       else R = R0 + (1-R0)*pow(1-cos_theta,5);*/

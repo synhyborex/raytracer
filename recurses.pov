@@ -1018,4 +1018,3 @@ triangle {
   pigment {color rgb <0.9, 0.9, 0.0>}
   finish {ambient 0.4 diffuse 0.5}
 }
-

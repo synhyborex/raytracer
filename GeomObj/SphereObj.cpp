@@ -28,6 +28,10 @@ void SphereObj::parse(ifstream &infile){
       nextString = nextString+1;
     loc.z = strtod(nextString,NULL); //set z position
 
+    /*mat4 compMat = glm::translate(mat4(1),loc);
+    if(compMat != composite)
+      composite = compMat;*/
+
   //radius option
     infile.getline(nextString,20,','); //discard commas
     infile >> nextString; //get value
@@ -223,6 +227,7 @@ void SphereObj::parse(ifstream &infile){
 
         //add transform to composite matrix
         mat4 transMat = glm::translate(mat4(1.0f),translate);
+        //loc += translate;
         if(transMat != mat4(1.0f))
           composite = transMat*composite;
       }
@@ -267,12 +272,14 @@ void SphereObj::parse(ifstream &infile){
       }
     }
   }
+  //apply inverse to composite
+  composite = glm::inverse(composite);
 }
 
 bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
   if(composite != mat4(1)){
-    vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
-    vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
+    vec4 ray2 = composite*vec4(ray,0);
+    vec4 origin2 = composite*vec4(origin,1);
     for(int i = 0; i < ray.length(); i++){
       ray[i] = ray2[i];
       origin[i] = origin2[i];
@@ -312,25 +319,23 @@ bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
   }
 
   //if t1 < 0, intersect at t2
-  if (t1 < 0){
+  if (t1 < 0)
     *t = t2;
-    return true;
-  }
   //else intersects at t1
-  else{
-    *t = t1;
-    return true;
-  }
+  else *t = t1;
+
+  return true;
 }
 
 void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
-  vec3 N = normalize(worldPos-loc); //normal vector
-  if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+  vec3 N = worldPos-loc; //normal vector
+  /*if(composite != mat4(1)){
+    vec4 tempNorm = glm::transpose(composite)*vec4(N,0);
     for(int i = 0; i < N.length(); i++){
       N[i] = tempNorm[i];
     }
-  }
+  }*/
+  N = normalize(N);
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 H = normalize(L+V); //halfway vector
@@ -390,13 +395,13 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
 vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
   vec3 normal = origin - loc;
   if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
     for(int i = 0; i < normal.length(); i++){
       normal[i] = tempNorm[i];
     }
   }
-  //ray = normalize(ray);
-  //normal = normalize(normal);
+  ray = normalize(ray);
+  normal = normalize(normal);
   return ray - 2*(dot(ray,normal))*normal;
 }
 
@@ -404,18 +409,17 @@ vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos
   float n1, n2; //indicies of refraction
   vec3 normal = origin - loc;
   if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
     for(int i = 0; i < normal.length(); i++){
       normal[i] = tempNorm[i];
     }
   }
-  //ray = normalize(ray);
-  //normal = normalize(normal);
+  ray = normalize(ray);
+  normal = normalize(normal);
   //into obj out of air
   if(dot(ray,normal) < 0){
     n1 = 1.0f;
     n2 = ior;
-    //normal = -normal;
   }
   //into air out of obj
   else{

@@ -1,6 +1,18 @@
-Everything should be working: reflection, shading, shadows, and transforms.
+Refractions and triangles are working as they should.
+I don't have multiple light handling yet, so all the files
+with multiple lights look weird. I also don't have boxes
+implemented yet, so I couldn't render a few other files at all.
 
-If the binary won't execute, just type "make" and get a new one.
+If the binary won't execute, just type "make" and get a new one. It will be called "render".
+
+While refractions and triangles are working, it turns out my transforms
+are not! I discovered that my shading is being done very incorrectly
+and I haven't been able to figure out why. However, my intersect tests
+do return real values and the objects are drawn in the right spots.
+
+I've rendered what I could with the broken transforms, and for some
+I've manually changed the translates to be included in the original
+object definition so that I could make them look presentable :P
 
 To toggle shading modes, use a command line argument of the format
 ./render <width> <height> -I<filename> <shading>
@@ -11,8 +23,27 @@ Each <> flag is optional, as defaults have been set to
 -I<filename> = simple.pov
 <shading> = 0
 
+***IMPORTANT***
 If while running the program you don't see the message "File parsing
 complete." but you do see "Successfully opened....", try taking out any
 extra blank space at the end of the .pov file. The last character in a
 .pov file should be '}'. Sometimes the blank spaces at the end make
-the file parsing indefinitely hang.
+the file parsing indefinitely hang. If it's not this, then there are probably carriage returns messing up the file. You can use my versions of the files if you're not getting the expected results, since they definitely work with my parser, though I've made slight modifications as stated above.
+
+Files I've modified:
+ugly_part.pov - took out the translates since transforms are broken
+recurse_simp.pov - I think I just took out the space at the end
+recurse_simp2.pov - added some spaces between braces for parsing purposes
+simple_tri.pov - took out the spaces
+simple_refract.pov - took out the spaces
+
+Render Times:
+ugly_part.pov - 10 min, 14.06 sec
+recurse_simp.pov - 57.56 sec
+recurse_simp2.pov - 15.54 sec
+simple_tri.pov - 14.61 sec
+simple_refract.pov - 2.57 sec
+recurses.pov - not rendered
+new.pov - 45.80 sec
+
+Go to the folder "Rendered" to view all of the renderings.

@@ -245,12 +245,14 @@ void PlaneObj::parse(ifstream &infile){
       }
     }
   }
+  //apply inverse to composite
+  composite = glm::inverse(composite);
 }
 
 bool PlaneObj::intersect(vec3 ray, vec3 origin, float *t){
   if(composite != mat4(1)){
-    vec4 ray2 = glm::inverse(composite)*vec4(ray,0);
-    vec4 origin2 = glm::inverse(composite)*vec4(origin,1);
+    vec4 ray2 = composite*vec4(ray,0);
+    vec4 origin2 = composite*vec4(origin,1);
     for(int i = 0; i < ray.length(); i++){
       ray[i] = ray2[i];
       origin[i] = origin2[i];
@@ -274,7 +276,7 @@ bool PlaneObj::intersect(vec3 ray, vec3 origin, float *t){
 void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(normal); //normal vector
   if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(N,0);
+    vec4 tempNorm = glm::transpose(composite)*vec4(N,0);
     for(int i = 0; i < N.length(); i++){
       N[i] = tempNorm[i];
     }
@@ -337,7 +339,7 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
 vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
   vec3 norm = normal; //3-component version of transformed normal
   if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
     for(int i = 0; i < norm.length(); i++){
       norm[i] = tempNorm[i];
     }
@@ -351,13 +353,13 @@ vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos,
   float n1, n2; //indicies of refraction
   vec3 norm = normal; //3-component version of transformed normal
   if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(glm::inverse(composite))*vec4(normal,0);
+    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
     for(int i = 0; i < norm.length(); i++){
       norm[i] = tempNorm[i];
     }
   }
-  //ray = normalize(ray);
-  //normal = normalize(normal);
+  ray = normalize(ray);
+  normal = normalize(normal);
   //into obj out of air
   if(dot(ray,normal) < 0){
     n1 = 1.0f;
