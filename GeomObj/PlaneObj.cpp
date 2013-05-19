@@ -267,12 +267,14 @@ bool PlaneObj::intersect(vec3 ray, vec3 origin, float *t){
   *t = dot(p-origin,normal)/denom;
 
   if(*t > 0){
+    intersection = origin + (*t)*ray;
     return true;
   }
   else{
     return false;
   }
 }
+
 void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = normalize(normal); //normal vector
   if(composite != mat4(1)){

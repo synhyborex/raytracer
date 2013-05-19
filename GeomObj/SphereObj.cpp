@@ -324,17 +324,19 @@ bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
   //else intersects at t1
   else *t = t1;
 
+  intersection = origin + (*t)*ray;
+
   return true;
 }
 
 void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   vec3 N = worldPos-loc; //normal vector
-  /*if(composite != mat4(1)){
+  if(composite != mat4(1)){
     vec4 tempNorm = glm::transpose(composite)*vec4(N,0);
     for(int i = 0; i < N.length(); i++){
       N[i] = tempNorm[i];
     }
-  }*/
+  }
   N = normalize(N);
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector

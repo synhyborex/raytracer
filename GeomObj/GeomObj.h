@@ -11,6 +11,11 @@
 #include "../glm/gtc/type_ptr.hpp" //value_ptr
 #include <fstream>
 #include <cmath>
+#define PLANE 1
+#define SPHERE 2
+#define CONE 3
+#define BOX 4
+#define TRIANGLE 5
 
 using namespace std;
 using namespace glm;

@@ -42,7 +42,7 @@ sphere { <-3.5, 0, 0>, 1
 
 sphere { <1, 0, 0>,1.5 
   pigment { color rgb <0.0, 1.0, 1.0>}
-  finish {ambient 0.0 diffuse 0.8 reflection 0.8}
+  finish {ambient 0.0 diffuse 0.8 reflection 1.0}
 }
 
 sphere { <-2.5, 0, -4>,2 
@@ -57,7 +57,7 @@ sphere { <2.8, 0, -4>, 2.5
 
 sphere { <0, 4, 0>, 1.1 
   pigment { color rgb <0.1, 0.1, 1.0>}
-  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 refraction 1.0 ior 0.66}
+  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 0.8}
 }
 
 plane {<0, 1, 0>, -4

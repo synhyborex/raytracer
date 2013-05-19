@@ -14,6 +14,7 @@
 #include "WorldObj/WorldObj.h"
 #include "WorldObj/Camera.h"
 #include "Ray/Ray.h"
+#define epsilon 0.01f
 
 //scene objects
 Light* light;

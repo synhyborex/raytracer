@@ -2,7 +2,7 @@
 
 //default camera pointing down negative z - case 0
 camera {
-location  <0, 0, 14>
+location  <0, 0, 20>
 up        <0,  1,  0>
 right     <1.33333, 0,  0>
 look_at   <0, 0, 0>
@@ -37,13 +37,13 @@ light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}
 
 sphere { <0, 0, 0>, 1
   pigment { color rgb <1.0, 0.0, 1.0>}
-  finish {ambient 0.2 diffuse 0.4}
+  finish {ambient 0.2 diffuse 0.4 refraction 1.0 ior 1.33}
   translate <-3.5, 0, 0>
 }
 
 sphere { <0, 0, 0>,1.5 
   pigment { color rgb <0.0, 1.0, 1.0>}
-  finish {ambient 0.0 diffuse 0.8}
+  finish {ambient 0.0 diffuse 0.8 reflection 1.0}
   translate <1, 0, 0>
 }
 
@@ -61,11 +61,12 @@ sphere { <0, 0, 0>, 2.5
 
 sphere { <0, 0, 0>, 1.1 
   pigment { color rgb <0.1, 0.1, 1.0>}
-  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01}
+  finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.01 reflection 0.8}
   translate <0, 4, 0>
 }
 
 plane {<0, 1, 0>, -4
       pigment {color rgb <0.2, 0.6, 0.8>}
-      finish {ambient 0.4 diffuse 0.8}
+      finish {ambient 0.4 diffuse 0.8 reflection 0.5}
+      translate <0, 15, 0>
 }

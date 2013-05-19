@@ -252,7 +252,38 @@ void BoxObj::parse(ifstream& infile){
   }
 }
 
-bool BoxObj::intersect(vec3 ray, vec3 cam, float *t){return true;}
+bool BoxObj::intersect(vec3 ray, vec3 origin, float *t){
+  if(composite != mat4(1)){
+    ray = vec3(composite*vec4(ray,0));
+    origin = vec3(composite*vec4(origin,1));
+  }
+
+  float xmin=std::min(c1.x,c2.x),ymin=std::min(c1.y,c2.y),zmin=std::min(c1.z,c2.z);
+  float xmax=std::max(c1.x,c2.x),ymax=std::max(c1.y,c2.y),zmax=std::max(c1.z,c2.z);
+  vec3 min = vec3(xmin,ymin,zmin);
+  vec3 max = vec3(xmax,ymax,zmax);
+
+  float tMax = INT_MAX;
+  float tMin = INT_MIN;
+  float t1,t2;
+
+  for(int i = 0; i < ray.length(); i++){
+    t1 = (min[i]-origin[i])/ray[i];
+    t2 = (max[i]-origin[i])/ray[i];
+    if(t2<t1) swap(t1,t2);
+    if(t1>tMin) tMin=t1;
+    if(t2<tMax) tMax=t2;
+  }
+
+  if(tMin > tMax || tMax < 0){
+    return false;
+  }
+
+  intersection = origin + (*t)*ray;
+  *t = tMin;
+  return true;
+}
+
 void BoxObj::shade(vec3 ray,vec3 worldPos,color_t* clr,Light l, int shade){}
 vec3 BoxObj::reflectedRay(vec3 ray, vec3 origin){
   return vec3(-1);

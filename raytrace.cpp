@@ -146,35 +146,35 @@ int main(int argc, char* argv[]){
     }
     //check if plane
     else if(!strcmp(nextString,"plane")){
-      plane = new PlaneObj(1);
+      plane = new PlaneObj(PLANE);
       plane->parse(infile);
       objList.push_back(plane);
       totalSize++;
     }
     //check if sphere
     else if(!strcmp(nextString,"sphere")){
-      sphere = new SphereObj(2);
+      sphere = new SphereObj(SPHERE);
       sphere->parse(infile);
       objList.push_back(sphere);
       totalSize++;
     }
     //check if cone
     else if(!strcmp(nextString,"cone")){
-      cone = new ConeObj(3);
+      cone = new ConeObj(CONE);
       cone->parse(infile);
       objList.push_back(cone);
       totalSize++;
     }
     //check if box
     else if(!strcmp(nextString,"box")){
-      box = new BoxObj(4);
+      box = new BoxObj(BOX);
       box->parse(infile);
       objList.push_back(box);
       totalSize++;
     }
     //check if triangle
     else if(!strcmp(nextString,"triangle")){
-      tri = new TriObj(5);
+      tri = new TriObj(TRIANGLE);
       tri->parse(infile);
       objList.push_back(tri);
       totalSize++;
@@ -202,30 +202,35 @@ int main(int argc, char* argv[]){
   cout << "Rendering image. This may take a while..." << endl;
   for(int x = 0; x < imageWidth; x++){ //x of image
     for(int y = 0; y < imageHeight; y++){ //y of image
-      //print loading stuff (to do)
-      //covert to camera space
-      vec3 camSpace; //camera space coordinates
-      camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
-      camSpace.y = botB+((topB-botB)*((y+0.5)/imageHeight));
-      camSpace.z = -1;
+      //antialiasing
+      //for(float sampleX = x; sampleX < x+1.0f; sampleX += 0.3f){
+        //for(float sampleY = y; sampleY < y+1.0f; sampleY += 0.3f){
+          //float AAcontrib = 0.15f;
+          //covert to camera space
+          vec3 camSpace; //camera space coordinates
+          camSpace.x = leftB+((rightB-leftB)*((x+0.5)/imageWidth));
+          camSpace.y = botB+((topB-botB)*((y+0.5)/imageHeight));
+          camSpace.z = -1;
 
-      //convert to world space
-      vec3 worldSpace; //world space coordinates
-      worldSpace = camera->loc + (camSpace.x*camera->getRight())
-        +(camSpace.y*camera->getUp())
-        +(camSpace.z*cross(camera->getRight(),camera->getUp()));
+          //convert to world space
+          vec3 worldSpace; //world space coordinates
+          worldSpace = camera->loc + (camSpace.x*camera->getRight())
+            +(camSpace.y*camera->getUp())
+            +(camSpace.z*cross(camera->getRight(),camera->getUp()));
 
-      //create primary ray
-      Ray primaryRay(camera->loc,worldSpace - camera->loc);
-      
-      //set recursion depth
-      recursionDepth = 6;
-      //set background color
-      background.r = 0.745; //gray
-      background.g = 0.745;
-      background.b = 0.745;
-      clr = raytrace(primaryRay);
-      img->pixel(x,y,clr);
+          //create primary ray
+          Ray primaryRay(camera->loc,worldSpace - camera->loc);
+          
+          //set recursion depth
+          recursionDepth = 6;
+          //set background color
+          background.r = 0.0f; //gray
+          background.g = 0.0f;
+          background.b = 0.0f;
+          clr = raytrace(primaryRay);
+          img->pixel(x,y,clr);
+        //}
+      //}
     }
   }
 
@@ -277,7 +282,6 @@ color_t raytrace(Ray ray){
   float t = INT_MAX; //interpolation value
   float minDist = INT_MAX; //smallest distance
   int bestObj = -1; //closest object. -1 means no intersect
-  float epsilon = 0.01f; //self-avoidance offset
 
   recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
@@ -295,12 +299,14 @@ color_t raytrace(Ray ray){
     //figure out what to draw, if anything
     color_t shadeColor; //light-based color contribution
     if(bestObj != -1){ //valid object
-      //calculate point of intersection
-      vec3 intersection;
-      if(objList[bestObj]->objID == 5){
-        intersection = objList[bestObj]->intersection;
-      } 
-      else intersection = ray.orig + minDist*ray.dir;
+      //object space intersection point
+      vec3 intersection = objList[bestObj]->intersection;
+      //world space intersection point
+      vec3 worldPos = ray.orig + minDist*ray.dir;
+      if(objList[bestObj]->objID == TRIANGLE){
+        worldPos = vec3(inverse(objList[bestObj]->composite)*vec4(worldPos,1));
+        //worldPos = objList[bestObj]->intersection;
+      }
       
       //get base color
       //using rgb color
@@ -327,7 +333,7 @@ color_t raytrace(Ray ray){
       float reflection = objList[bestObj]->reflection; //reflection coeff
       if(reflection > 0.0f){ //the surface is reflective
         //calculate reflection vector
-        Ray reflect(intersection,
+        Ray reflect(worldPos,
           objList[bestObj]->reflectedRay(ray.dir,intersection));
         //recurse
         reflColor = raytrace(reflect); //recurse
@@ -344,7 +350,7 @@ color_t raytrace(Ray ray){
       float refraction = objList[bestObj]->refraction; //refraction coeff
       if(refraction > 0.0f){ //the surface is refractive
         //calculate refraction vector
-        Ray refract(intersection,
+        Ray refract(worldPos,
           objList[bestObj]->refractedRay(
             ray.dir,intersection,&offsetOrig,&cos_theta,&R0));
         //update origin based on which way the ray went
@@ -357,10 +363,10 @@ color_t raytrace(Ray ray){
       }
 
       //multiple lights
-      /**IN PROGRESS**/
+      /**in progress**/
       for(int lightIdx = 0; lightIdx < lightList.size(); lightIdx++){
         //check for shadows
-        Ray shadowRay(intersection,light->loc - intersection); //shadow vector
+        Ray shadowRay(worldPos,lightList[lightIdx]->loc - worldPos); //shadow vector
         float tShadow = -INT_MAX; //range check
         bool shadow = false; //no shadows
 
