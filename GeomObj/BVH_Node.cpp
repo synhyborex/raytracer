@@ -125,13 +125,7 @@ void BVH_Node::printTree(BVH_Node* head){
   }*/
 }
 
-BVH_Node* BVH_Node::makeLeaf(GeomObj* v){
-  /*BVH_Node* node = (BVH_Node*)malloc(sizeof(BVH_Node));
-  node->obj = v;
-  node->isObj = true;
-  return node;*/
-  return new BVH_Node(v);
-}
+BVH_Node* BVH_Node::makeLeaf(GeomObj* v){return new BVH_Node(v);}
 
 bool BVH_Node::intersect(vec3 ray, vec3 origin, BVH_Node* n, float* tMain){
   float tMax = INT_MAX;
@@ -143,64 +137,106 @@ bool BVH_Node::intersect(vec3 ray, vec3 origin, BVH_Node* n, float* tMain){
 
   std::list<BVH_Node*> stack;
   BVH_Node* cur;
-  stack.push_front(this);
   float tLeft = INT_MAX, tRight = INT_MAX;
   bool hitLeft = false, hitRight = false;
   BVH_Node* leftRet = NULL;
   BVH_Node* rightRet = NULL;
+
+  //traverse tree
+  stack.push_front(this);
   while(!stack.empty()){
     cur = stack.front();
     stack.pop_front();
-    if(cur->moreNodes){ //not a leaf
-      if(!cur->left->moreNodes && cur->left->obj){ //left is leaf
-        //cout << cur->left->obj->objID << endl;
+    float hack;
+    //not a leaf
+    if(cur->moreNodes && cur->bb.intersect(ray,origin,&hack)){
+      //left is leaf
+      if(!cur->left->moreNodes && cur->left->obj){
         if(cur->left->obj->bb.intersect(ray,origin,&tLeft)){
-          //cout << "yee buddy left" << endl;
-          leftRet = cur->left;
-          hitLeft = true;
+          if(cur->left->obj->intersect(ray,origin,&tLeft)){
+            if(tLeft < *tMain)
+              *tMain = tLeft;
+            leftRet = cur->left;
+            hitLeft = true;
+          }
         }
       }
-      else{ //left not leaf, go down
+      //left not leaf, go down
+      else{
         stack.push_front(cur->left);
-        hitLeft = false;
+        //hitLeft = false;
       } 
-      if(!cur->right->moreNodes && cur->right->obj){ //right is leaf
-        //cout << cur->right->obj->objID << endl;
+      //right is leaf
+      if(!cur->right->moreNodes && cur->right->obj){
         if(cur->right->obj->bb.intersect(ray,origin,&tRight)){
-          //cout << "yee buddy RIGHT" << endl;
-          rightRet = cur->right;
-          hitRight = true;
+          if(cur->right->obj->intersect(ray,origin,&tRight)){
+            if(tRight < *tMain)
+              *tMain = tRight;
+            rightRet = cur->right;
+            hitRight = true;
+          }
         }
       }
-      else{ //right not leaf, go down
+      //right not leaf, go down
+      else{
         stack.push_front(cur->right);
-        hitRight = false;
+        //hitRight = false;
       } 
     }
   }
   if(hitLeft && hitRight){
-    if(tLeft <= tRight)
+    if(tLeft <= tRight){
       *n = *leftRet;
-    else *n = *rightRet;
+      //*tMain = tLeft;
+    }
+    else{
+      *n = *rightRet;
+      //*tMain = tRight;
+    }
   }
   else if(hitLeft){
     *n = *leftRet;
+    //*tMain = tLeft;
   }
   else if(hitRight){
     *n = *rightRet;
+    //*tMain = tRight;
   }
 
   /*float tLeft=INT_MAX, tRight=INT_MAX;
   BVH_Node* leftRet;
-  BVH_Node* rightRet;
-  if(moreNodes){
-    //*n = *left;
-    hitLeft = left->intersect(ray,origin,leftRet);
-    //*n = *right;
-    hitRight = right->intersect(ray,origin,rightRet);
+  BVH_Node* rightRet;*/
+  /*float hack;
+  if(moreNodes && bb.intersect(ray,origin,&hack)){
+    //left is leaf
+    if(!left->moreNodes && left->obj){
+      //cout << cur->left->obj->objID << endl;
+      if(left->obj->bb.intersect(ray,origin,&tLeft)){
+        //cout << "yee buddy left" << endl;
+        leftRet = left;
+        hitLeft = true;
+      }
+    }
+    //left not leaf, go down
+    else{
+      stack.push_front(cur->left);
+      //hitLeft = false;
+    } 
+    //right is leaf
+    if(!cur->right->moreNodes && cur->right->obj){
+      //cout << cur->right->obj->objID << endl;
+      if(cur->right->obj->bb.intersect(ray,origin,&tRight)){
+        //cout << "yee buddy RIGHT" << endl;
+        rightRet = cur->right;
+        hitRight = true;
+      }
+    }
+    //right not leaf, go down
+    else{
+      stack.push_front(cur->right);
+      //hitRight = false;
+    } 
   }
-  //cout << "~left " << leftRet->obj->objID << endl;
-  //cout << "~right " << rightRet->obj->objID << endl;
   else cout << " hello " << obj->objID << endl;
   if(hitLeft && hitRight){
     *n = *leftRet;
@@ -211,25 +247,8 @@ bool BVH_Node::intersect(vec3 ray, vec3 origin, BVH_Node* n, float* tMain){
   else if(hitRight){
     *n = *rightRet;
   }*/
-  //else n->obj = this->obj;
-  //else *n = *this;
-  //else *n = *this;
-  //if(n->obj != NULL)
-  //  cout << n->obj->objID << endl;
-  /*if(tLeft<=tRight)
-    *n = *left;
-  else *n = *right;*/
 
-  //if(hitLeft)
-  //  cout << n->obj->objID << endl;
-  //else cout << "nope" << endl;
-
-  //bool ret = (hitLeft || hitRight);
-  //return ret;
-  //return hitLeft;
   return (hitLeft || hitRight);
-  //*n = *left;
-  //return true;
 }
 
 BBox BVH_Node::combineBoxes(BBox one, BBox two){

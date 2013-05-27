@@ -229,7 +229,8 @@ int main(int argc, char* argv[]){
           background.r = 0.0f; //gray
           background.g = 0.0f;
           background.b = 0.0f;
-          clr = raytrace(primaryRay);
+          bool usebvh = true;
+          clr = raytrace(primaryRay,usebvh);
           img->pixel(x,y,clr);
         //}
       //}
@@ -280,7 +281,7 @@ float world_to_pixel_y(float height, float width, float y){
   return e*y+f;
 }
 
-color_t raytrace(Ray ray){
+color_t raytrace(Ray ray, bool usebvh){
   color_t clr; //color to return
   float t = INT_MAX; //bvh interpolation value
   float p = INT_MAX; //plane list interp value
@@ -291,15 +292,26 @@ color_t raytrace(Ray ray){
   recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
     //check primary ray against BVH
-    if(bvh->intersect(ray.dir,ray.orig,&bestNode,&t)){
-      //cout << "ekhjhg" << endl;
-      if(bestNode.obj->intersect(ray.dir,ray.orig,&t)){
+    if(usebvh){ //use bvh
+      if(bvh->intersect(ray.dir,ray.orig,&bestNode,&t)){
         if(t > epsilon && t < minDist){ //check depth
           minDist = t; //update depth
           traceObj = bestNode.obj; //update closest object
         }
       }
     }
+    else{ //don't use bvh
+      for(int index = 0; index < objList.size(); index++){
+        //if intersect
+        if(objList[index]->intersect(ray.dir,ray.orig,&t)){
+          if(t > epsilon && t < minDist){ //check depth
+            minDist = t; //update depth
+            traceObj = objList[index]; //update closest object
+          }
+        }
+      }
+    }
+    //go over planes
     for(int index = 0; index < planeList.size(); index++){
       //if intersect
       if(planeList[index]->intersect(ray.dir,ray.orig,&p)){
@@ -309,18 +321,9 @@ color_t raytrace(Ray ray){
         }
       }
     }
-    /*for(int index = 0; index < objList.size(); index++){
-      //if intersect
-      if(objList[index]->intersect(ray.dir,ray.orig,&t)){
-        if(t > epsilon && t < minDist){ //check depth
-          minDist = t; //update depth
-          bestObj = index; //update closest object
-        }
-      }
-    }*/
 
     //figure out what to draw, if anything
-    color_t shadeColor; //light-based color contribution
+    color_t shadeColor = background; //light-based color contribution
     if(traceObj != NULL){ //valid object
       //object space intersection point
       vec3 intersection = traceObj->intersection;
@@ -359,7 +362,7 @@ color_t raytrace(Ray ray){
         Ray reflect(worldPos,
           traceObj->reflectedRay(ray.dir,intersection));
         //recurse
-        reflColor = raytrace(reflect); //recurse
+        reflColor = raytrace(reflect,usebvh); //recurse
       }
       else{ //no reflection
         reflColor = background;
@@ -379,7 +382,7 @@ color_t raytrace(Ray ray){
         //update origin based on which way the ray went
         refract.orig = offsetOrig;
         //recurse
-        refrColor = raytrace(refract);
+        refrColor = raytrace(refract,usebvh);
       }
       else{ //no refraction
         refrColor = background;
@@ -396,13 +399,23 @@ color_t raytrace(Ray ray){
         BVH_Node shadowNode;
 
         //intersect shadow feeler with geometry
-        if(bvh->intersect(ray.dir,ray.orig,&shadowNode,&tShadow)){
-          if(shadowNode.obj->intersect(shadowRay.dir,
-            shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
+        if(usebvh){ //use bvh
+          if(bvh->intersect(shadowRay.dir,shadowRay.orig
+            +(shadowRay.dir*epsilon),&shadowNode,&tShadow)){
             shadow = true;
-            break;
           }
         }
+        else{ //don't use bvh
+          for(int index = 0; index < objList.size(); index++){
+            //if intersection
+            if(objList[index]->intersect(shadowRay.dir,
+              shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
+              shadow = true;
+              break;
+            }
+          }
+        }
+        //go over planes
         for(int index = 0; index < planeList.size(); index++){
           //if intersection
           if(planeList[index]->intersect(shadowRay.dir,
@@ -411,14 +424,6 @@ color_t raytrace(Ray ray){
             break;
           }
         }
-        /*for(int index = 0; index < objList.size(); index++){
-          //if intersection
-          if(objList[index]->intersect(shadowRay.dir,
-            shadowRay.orig+(shadowRay.dir*epsilon),&tShadow)){
-            shadow = true;
-            break;
-          }
-        }*/
         if(!shadow){ //no shadows
           traceObj->shade(ray.dir,intersection,&shadeColor,*light,shade);
         }
@@ -427,7 +432,7 @@ color_t raytrace(Ray ray){
           shadeColor.r = shadeColor.r*traceObj->ambient;
           shadeColor.g = shadeColor.g*traceObj->ambient;
           shadeColor.b = shadeColor.b*traceObj->ambient;
-        }
+        } 
       }
 
       //Schlick's approximation
