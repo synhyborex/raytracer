@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <vector>
 #include <iostream>
 #include <stdlib.h>
 #include <assert.h>
@@ -11,10 +10,10 @@
 #include "GeomObj/TriObj.h"
 #include "GeomObj/SphereObj.h"
 #include "GeomObj/BoxObj.h"
+#include "GeomObj/BVH_Node.h"
 #include "WorldObj/WorldObj.h"
 #include "WorldObj/Camera.h"
 #include "Ray/Ray.h"
-#define epsilon 0.01f
 
 //scene objects
 Light* light;
@@ -39,8 +38,11 @@ int recursionDepth; //how many times to recurse
 
 //object storage variables
 int totalSize; //number of objects
-vector<GeomObj*> objList;
-vector<Light*> lightList;
+vector<GeomObj*> objList; //list of objects
+vector<PlaneObj*> planeList; //list of planes
+vector<Light*> lightList; //list of lights
+BVH_Node* bvh;
+
 
 //file pointers
 ifstream infile;

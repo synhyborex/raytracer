@@ -1,18 +1,13 @@
-Refractions and triangles are working as they should.
-I don't have multiple light handling yet, so all the files
-with multiple lights look weird. I also don't have boxes
-implemented yet, so I couldn't render a few other files at all.
+The BVH is building and traversing correctly, but it's not working quite yet. I can render a scene with any number of planes, but only one object. Scenes with transforms render partial objects. 
 
+Until I implemented the BVH, boxes worked great too. Shading is a little off now; this is due to a bug in how my intersections are being done with the BVH. This is the main bug with my BVH currently.
+
+I haven't rendered the example files, they took too long without a working BVH.
+
+I've altered simple.pov to render a single box and a number of different planes. There are other objects commented out, but only one will render of anything. simp_cam.pov also shows the partial rendering of transformed geometry in the BVH.
+
+------Instructions------
 If the binary won't execute, just type "make" and get a new one. It will be called "render".
-
-While refractions and triangles are working, it turns out my transforms
-are not! I discovered that my shading is being done very incorrectly
-and I haven't been able to figure out why. However, my intersect tests
-do return real values and the objects are drawn in the right spots.
-
-I've rendered what I could with the broken transforms, and for some
-I've manually changed the translates to be included in the original
-object definition so that I could make them look presentable :P
 
 To toggle shading modes, use a command line argument of the format
 ./render <width> <height> -I<filename> <shading>
@@ -29,21 +24,3 @@ complete." but you do see "Successfully opened....", try taking out any
 extra blank space at the end of the .pov file. The last character in a
 .pov file should be '}'. Sometimes the blank spaces at the end make
 the file parsing indefinitely hang. If it's not this, then there are probably carriage returns messing up the file. You can use my versions of the files if you're not getting the expected results, since they definitely work with my parser, though I've made slight modifications as stated above.
-
-Files I've modified:
-ugly_part.pov - took out the translates since transforms are broken
-recurse_simp.pov - I think I just took out the space at the end
-recurse_simp2.pov - added some spaces between braces for parsing purposes
-simple_tri.pov - took out the spaces
-simple_refract.pov - took out the spaces
-
-Render Times:
-ugly_part.pov - 10 min, 14.06 sec
-recurse_simp.pov - 57.56 sec
-recurse_simp2.pov - 15.54 sec
-simple_tri.pov - 14.61 sec
-simple_refract.pov - 2.57 sec
-recurses.pov - not rendered
-new.pov - 45.80 sec
-
-Go to the folder "Rendered" to view all of the renderings.

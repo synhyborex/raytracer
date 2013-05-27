@@ -15,8 +15,11 @@ class BoxObj: public GeomObj{
     virtual void printID();
     vec3 getCorner(int);
     void setCorner(int, vec3);
+    vec3 getNormal(vec3);
 
   private:
     vec3 c1; //corners
     vec3 c2;
+    vec3 min; //min values
+    vec3 max; //max values
 };

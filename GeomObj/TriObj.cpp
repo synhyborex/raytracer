@@ -64,6 +64,16 @@ void TriObj::parse(ifstream& infile){
       nextString = nextString+1;
     v3.z = strtod(nextString,NULL); //set z position
 
+    float minx = std::min(v1.x,std::min(v2.x,v3.x));
+    float miny = std::min(v1.y,std::min(v2.y,v3.y));
+    float minz = std::min(v1.z,std::min(v2.z,v3.z));
+    float maxx = std::max(v1.x,std::max(v2.x,v3.x));
+    float maxy = std::max(v1.y,std::max(v2.y,v3.y));
+    float maxz = std::max(v1.z,std::max(v2.z,v3.z));
+    bb.min = vec3(minx,miny,minz);
+    bb.max = vec3(maxx,maxy,maxz);
+    bb.pivot = (bb.min+bb.max)/2.0f;
+
   bool pad = false; //padding
   while(strcmp(nextString,"}")){
     if(!pad){ //padding check
@@ -298,6 +308,9 @@ void TriObj::parse(ifstream& infile){
       }
     }
   }
+  //apply transforms to bounding box
+  bb.min = vec3(composite*vec4(bb.min,0));
+  bb.max = vec3(composite*vec4(bb.max,0));
   //apply inverse to composite
   composite = glm::inverse(composite);
 }
@@ -455,7 +468,7 @@ vec3 TriObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, f
   float nRatio = n1/n2;
   float disc = 1-(pow(nRatio,2)*(1-pow(*cos,2)));
   if(disc < 0){ //total internal reflection
-    *offsetOrig = origin + normal*.01f; //set offset origin
+    *offsetOrig = origin + normal*epsilon; //set offset origin
     return ray - 2*-(*cos)*normal; //reflection vector
   }
 

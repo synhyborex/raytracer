@@ -28,14 +28,14 @@ void SphereObj::parse(ifstream &infile){
       nextString = nextString+1;
     loc.z = strtod(nextString,NULL); //set z position
 
-    /*mat4 compMat = glm::translate(mat4(1),loc);
-    if(compMat != composite)
-      composite = compMat;*/
-
   //radius option
     infile.getline(nextString,20,','); //discard commas
     infile >> nextString; //get value
     radius = strtod(nextString,NULL); //set value
+
+    bb.min = vec3(loc.x-radius,loc.y-radius,loc.z-radius);
+    bb.max = vec3(loc.x+radius,loc.y+radius,loc.z+radius);
+    bb.pivot = (bb.min+bb.max)/2.0f;
 
   bool pad = false; //padding
   while(strcmp(nextString,"}")){
@@ -272,6 +272,9 @@ void SphereObj::parse(ifstream &infile){
       }
     }
   }
+  //apply transforms to bounding box
+  bb.min = vec3(composite*vec4(bb.min,0));
+  bb.max = vec3(composite*vec4(bb.max,0));
   //apply inverse to composite
   composite = glm::inverse(composite);
 }
@@ -438,7 +441,7 @@ vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos
   float nRatio = n1/n2;
   float disc = 1-(pow(nRatio,2)*(1-pow(*cos,2)));
   if(disc < 0){ //total internal reflection
-    *offsetOrig = origin + normal*.01f; //set offset origin
+    *offsetOrig = origin + normal*epsilon; //set offset origin
     return ray - 2*-(*cos)*normal; //reflection vector
   }
 

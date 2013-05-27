@@ -33,6 +33,10 @@ void PlaneObj::parse(ifstream &infile){
     infile >> nextString; //get distance value
     distance = strtod(nextString,NULL); //set value
 
+    bb.min = vec3(INT_MIN);
+    bb.max = vec3(INT_MAX);
+    bb.pivot = (bb.min+bb.max)/2.0f;
+
   bool pad = false; //pad check
   while(strcmp(nextString,"}")){
     if(!pad){ //padding check
@@ -250,21 +254,19 @@ void PlaneObj::parse(ifstream &infile){
 }
 
 bool PlaneObj::intersect(vec3 ray, vec3 origin, float *t){
+  vec3 tempNorm = normal;
   if(composite != mat4(1)){
-    vec4 ray2 = composite*vec4(ray,0);
-    vec4 origin2 = composite*vec4(origin,1);
-    for(int i = 0; i < ray.length(); i++){
-      ray[i] = ray2[i];
-      origin[i] = origin2[i];
-    }
+    ray = vec3(composite*vec4(ray,0));
+    origin = vec3(composite*vec4(origin,1));
+    tempNorm = vec3(glm::transpose(composite)*vec4(normal,0));
   }
-  float denom = dot(ray,normal);
-  vec3 p = normalize(normal)*distance;
+  float denom = dot(ray,tempNorm);
+  vec3 p = normalize(tempNorm)*distance;
 
   if(denom == 0)
     return false;
   
-  *t = dot(p-origin,normal)/denom;
+  *t = dot(p-origin,tempNorm)/denom;
 
   if(*t > 0){
     intersection = origin + (*t)*ray;
@@ -383,7 +385,7 @@ vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos,
   float nRatio = n1/n2;
   float disc = 1-(pow(nRatio,2)*(1-pow(*cos,2)));
   if(disc < 0){ //total internal reflection
-    *offsetOrig = origin + normal*.01f; //set offset origin
+    *offsetOrig = origin + normal*epsilon; //set offset origin
     return ray - 2*-(*cos)*normal; //reflection vector
   }
 
