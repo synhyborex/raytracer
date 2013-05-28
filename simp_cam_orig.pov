@@ -2,7 +2,7 @@
 
 //default camera pointing down negative z - case 0
 camera {
-location  <0, 0, 14>
+location  <0, 0, 5>
 up        <0,  1,  0>
 right     <1.33333, 0,  0>
 look_at   <0, 0, 0>
@@ -30,6 +30,13 @@ look_at   <0, 0, 0>
 //up        <0,  1,  0>
 //right     <.94, 0,  -.94>
 //look_at   <0, 0, 0>
+//}
+
+//camera {
+//  location  <0, 0, -14>
+//  up        <0,  1,  0>
+//  right     <-1.33333, 0, 0>
+//  look_at   <0, 0, 0>
 //}
 
 

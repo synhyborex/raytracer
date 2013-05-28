@@ -294,8 +294,8 @@ void BoxObj::parse(ifstream& infile){
     }
   }
   //apply transforms to bounding box
-  bb.min = vec3(composite*vec4(bb.min,0));
-  bb.max = vec3(composite*vec4(bb.max,0));
+  bb.max = transformBB(0);
+  bb.min = transformBB(1);
   //apply inverse to composite
   composite = glm::inverse(composite);
 }
@@ -380,9 +380,9 @@ void BoxObj::shade(vec3 ray,vec3 worldPos,color_t* clr,Light l, int shade){
   specGreen = specular*tempS*lightColor[2];
 
   //set color
-  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  clr->r = clr->r + clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
+  clr->g = clr->g + clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
+  clr->b = clr->b + clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
 }
 
 vec3 BoxObj::getNormal(vec3 worldPos){

@@ -26,7 +26,7 @@ using namespace glm;
 struct BBox{
   vec3 min, max; //bounds
   vec3 pivot; //center on axes
-  bool intersect(vec3 ray, vec3 origin, float *t){
+  bool intersect(vec3 ray, vec3 origin){
     float tMax = INT_MAX;
     float tMin = INT_MIN;
     float t1,t2;
@@ -42,7 +42,6 @@ struct BBox{
     if(tMin > tMax || tMax < 0){
       return false;
     }
-    *t = tMin;
     return true;
   }
 };
@@ -53,6 +52,7 @@ class GeomObj{
     GeomObj(int id);
     ~GeomObj();
     virtual void parse(ifstream&) =0; //gets object info
+    virtual vec3 transformBB(int); //transforms bounding box
     virtual bool intersect(vec3,vec3,float*) =0; //checks for intersections
     virtual void shade(vec3,vec3,color_t*,Light,int) =0; //colors the object
     virtual void printID(){cout << "Geom " << objID << endl;}; //prints ID

@@ -335,9 +335,9 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
 
-  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  clr->r = clr->r + clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
+  clr->g = clr->g + clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
+  clr->b = clr->b + clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
 }
 
 vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){

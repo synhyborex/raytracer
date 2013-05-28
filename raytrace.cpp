@@ -192,7 +192,7 @@ int main(int argc, char* argv[]){
   //Image img(imageWidth, imageHeight);
   img = new Image(imageWidth, imageHeight);
   bvh = new BVH_Node(objList,0);
-  //bvh->printTree();
+  //bvh->printTree(bvh);
 
   //set camera space bounding box
   leftB = (-(float)imageWidth/imageHeight)/2.0f; //left of near plane
@@ -293,7 +293,7 @@ color_t raytrace(Ray ray, bool usebvh){
   if(recursionDepth >= 0){ //still more recursions to go
     //check primary ray against BVH
     if(usebvh){ //use bvh
-      if(bvh->intersect(ray.dir,ray.orig,&bestNode,&t)){
+      if(bvh->intersect(bvh,ray.dir,ray.orig,&bestNode,&t)){
         if(t > epsilon && t < minDist){ //check depth
           minDist = t; //update depth
           traceObj = bestNode.obj; //update closest object
@@ -400,7 +400,7 @@ color_t raytrace(Ray ray, bool usebvh){
 
         //intersect shadow feeler with geometry
         if(usebvh){ //use bvh
-          if(bvh->intersect(shadowRay.dir,shadowRay.orig
+          if(bvh->intersect(bvh,shadowRay.dir,shadowRay.orig
             +(shadowRay.dir*epsilon),&shadowNode,&tShadow)){
             shadow = true;
           }

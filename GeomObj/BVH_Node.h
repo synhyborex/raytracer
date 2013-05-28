@@ -14,13 +14,14 @@ class BVH_Node{
     BBox bb; //bounding box
     GeomObj* obj; //the object itself
     bool moreNodes; //nodes following this one or not
+    bool visited;
 
     //functions
     BBox combineBoxes(BBox,BBox);
     BVH_Node* makeLeaf(GeomObj*);
     void printTree();
     void printTree(BVH_Node*);
-    bool intersect(vec3,vec3,BVH_Node*,float*);
+    bool intersect(BVH_Node*,vec3,vec3,BVH_Node*,float*);
     static bool compareByX(GeomObj*,GeomObj*);
     static bool compareByY(GeomObj*,GeomObj*);
     static bool compareByZ(GeomObj*,GeomObj*);
