@@ -26,6 +26,26 @@ using namespace glm;
 struct BBox{
   vec3 min, max; //bounds
   vec3 pivot; //center on axes
+  bool intersect(vec3 ray, vec3 origin, float* b){
+    float tMax = INT_MAX;
+    float tMin = INT_MIN;
+    float t1,t2;
+
+    for(int i = 0; i < ray.length(); i++){
+      t1 = (min[i]-origin[i])/ray[i];
+      t2 = (max[i]-origin[i])/ray[i];
+      if(t2<t1) swap(t1,t2);
+      if(t1>tMin) tMin=t1;
+      if(t2<tMax) tMax=t2;
+    }
+
+    if(tMin > tMax || tMax < 0){
+      return false;
+    }
+    *b = tMin;
+    return true;
+  }
+
   bool intersect(vec3 ray, vec3 origin){
     float tMax = INT_MAX;
     float tMin = INT_MIN;

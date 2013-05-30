@@ -7,13 +7,16 @@ RAY=Ray/Ray.cpp
 FLAGS=-c -g -pg
 
 default:
+	g++ -o render raytrace.cpp $(IMAGE) $(RAY) $(WORLDOBJ) $(BVH) $(GEOMOBJ) -g -pg -O3
+
+obj:
 	g++ $(FLAGS) raytrace.cpp
 	g++ $(FLAGS) $(IMAGE)
 	g++ $(FLAGS) $(RAY)
 	g++ $(FLAGS) $(WORLDOBJ)
 	g++ $(FLAGS) $(BVH)
 	g++ $(FLAGS) $(GEOMOBJ)
-	g++ *.o -o render
+	g++ -pg *.o -o render
 
 run:
 	g++ $(FLAGS) raytrace.cpp
@@ -22,5 +25,5 @@ run:
 	g++ $(FLAGS) $(WORLDOBJ)
 	g++ $(FLAGS) $(BVH)
 	g++ $(FLAGS) $(GEOMOBJ)
-	g++ *.o -o render
+	g++ -pg *.o -o render
 	./render -I simple.pov 

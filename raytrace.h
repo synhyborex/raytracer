@@ -51,4 +51,6 @@ char* filename;
 /*****FUNCTIONS*****/
 float world_to_pixel_x(float,float,float);
 float world_to_pixel_y(float,float,float);
-color_t raytrace(Ray,bool);
+void sampleDisk(float,float,float*,float*);
+vec3 diskToHemisphere(float,float);
+color_t raytrace(Ray,bool,int);

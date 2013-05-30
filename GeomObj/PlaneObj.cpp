@@ -327,7 +327,7 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
       float theta;
       if(roughness == 0.0f)
         roughness += 0.00001;
-      theta = acos(dot(N,H)/(length(N)*length(H)));
+      theta = acosf(dot(N,H)/(length(N)*length(H)));
       tempS = exp(-pow(theta/roughness,2));
       break;
   }
@@ -335,9 +335,9 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
 
-  clr->r = clr->r + clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g + clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b + clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
+  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
+  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
 }
 
 vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
@@ -350,7 +350,7 @@ vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
   }
   ray = normalize(ray);
   normal = normalize(normal);
-  return ray - 2*(dot(ray,norm))*norm;
+  return normalize(ray - 2*(dot(ray,norm))*norm);
 }
 
 vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
@@ -390,7 +390,7 @@ vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos,
   }
 
   *offsetOrig = origin - normal*.01f; //set offset origin
-  return (nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal);
+  return normalize((nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal));
 }
 
 void PlaneObj::printID(){cout << "Plane " << objID << endl;};

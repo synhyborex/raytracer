@@ -409,7 +409,7 @@ void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
       float theta;
       if(roughness == 0.0f)
         roughness += 0.00001;
-      theta = acos(dot(N,H)/(length(N)*length(H)));
+      theta = acosf(dot(N,H)/(length(N)*length(H)));
       tempS = exp(-pow(theta/roughness,2));
       break;
   }
@@ -418,9 +418,9 @@ void TriObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   specGreen = specular*tempS*lightColor[2];
 
   //set color
-  clr->r = clr->r + clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g + clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b + clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
+  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
+  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
 }
 
 vec3 TriObj::reflectedRay(vec3 ray, vec3 origin){
@@ -433,7 +433,7 @@ vec3 TriObj::reflectedRay(vec3 ray, vec3 origin){
   }
   ray = normalize(ray);
   normal = normalize(normal);
-  return ray - 2*(dot(ray,normal))*normal;
+  return normalize(ray - 2*(dot(ray,normal))*normal);
 }
 
 vec3 TriObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
@@ -473,7 +473,7 @@ vec3 TriObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, f
   }
 
   *offsetOrig = origin - normal*.01f; //set offset origin
-  return (nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal);
+  return normalize((nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal));
 }
 
 void TriObj::printID(){cout << "Tri " << objID << endl;};

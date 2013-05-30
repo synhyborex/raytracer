@@ -230,7 +230,7 @@ int main(int argc, char* argv[]){
           background.g = 0.0f;
           background.b = 0.0f;
           bool usebvh = true;
-          clr = raytrace(primaryRay,usebvh);
+          clr = raytrace(primaryRay,usebvh,6);
           img->pixel(x,y,clr);
         //}
       //}
@@ -281,7 +281,24 @@ float world_to_pixel_y(float height, float width, float y){
   return e*y+f;
 }
 
-color_t raytrace(Ray ray, bool usebvh){
+void sampleDisk(float u1, float u2, float* Dx, float* Dy){
+  float r = sqrt(u1);
+  float theta = 2.0f*M_PI*u2;
+  *Dx = r*cosf(theta);
+  *Dy = r*sinf(theta);
+}
+
+vec3 diskToHemisphere(float u1, float u2){
+  float r = sqrt(1-u1);
+  float theta = 2 * M_PI * u2;
+
+  float x = r * cosf(theta);
+  float y = r * sinf(theta);
+
+  return vec3(x, y, sqrt(u1));
+}
+
+color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
   color_t clr; //color to return
   float t = INT_MAX; //bvh interpolation value
   float p = INT_MAX; //plane list interp value
@@ -289,7 +306,6 @@ color_t raytrace(Ray ray, bool usebvh){
   BVH_Node bestNode; //closest node
   GeomObj* traceObj = NULL;
 
-  recursionDepth--;
   if(recursionDepth >= 0){ //still more recursions to go
     //check primary ray against BVH
     if(usebvh){ //use bvh
@@ -333,6 +349,14 @@ color_t raytrace(Ray ray, bool usebvh){
         worldPos = vec3(inverse(traceObj->composite)*vec4(worldPos,1));
         //worldPos = traceObj->intersection;
       }
+
+      //Monte Carlo recursion
+      float dx, dy;
+      float u1 = rand()/RAND_MAX, u2 = rand()/RAND_MAX;
+      sampleDisk(u1,u2,&dx,&dy);
+      vec3 hDir = diskToHemisphere(dx,dy);
+      Ray monteCarlo(worldPos,hDir);
+      color_t indirect; //total indirect lighting
       
       //get base color
       //using rgb color
@@ -362,7 +386,7 @@ color_t raytrace(Ray ray, bool usebvh){
         Ray reflect(worldPos,
           traceObj->reflectedRay(ray.dir,intersection));
         //recurse
-        reflColor = raytrace(reflect,usebvh); //recurse
+        reflColor = raytrace(reflect,usebvh,recursionDepth-1); //recurse
       }
       else{ //no reflection
         reflColor = background;
@@ -382,7 +406,7 @@ color_t raytrace(Ray ray, bool usebvh){
         //update origin based on which way the ray went
         refract.orig = offsetOrig;
         //recurse
-        refrColor = raytrace(refract,usebvh);
+        refrColor = raytrace(refract,usebvh,recursionDepth-1);
       }
       else{ //no refraction
         refrColor = background;
@@ -466,7 +490,6 @@ color_t raytrace(Ray ray, bool usebvh){
     else clr = background; //nothing to draw at that pixel
   }
   else clr = background; //nothing to draw at that pixel
-  recursionDepth++;
 
   return clr;
 }
