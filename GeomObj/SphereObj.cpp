@@ -332,15 +332,8 @@ bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
   return true;
 }
 
-void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
-  vec3 N = worldPos-loc; //normal vector
-  if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(composite)*vec4(N,0);
-    for(int i = 0; i < N.length(); i++){
-      N[i] = tempNorm[i];
-    }
-  }
-  N = normalize(N);
+color_t SphereObj::shade(vec3 ray, vec3 worldPos, color_t clr, Light l, int shade){
+  vec3 N = normalize(getNormal(worldPos));
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 H = normalize(L+V); //halfway vector
@@ -392,19 +385,16 @@ void SphereObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade)
   specGreen = specular*tempS*lightColor[2];
 
   //set color
-  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  color_t color;
+  color.r = clr.r*diffuseRed + clr.r*specRed;// + clr.r*ambient;
+  color.g = clr.g*diffuseGreen + clr.g*specGreen;// + clr.g*ambient;
+  color.b = clr.b*diffuseBlue + clr.b*specBlue;// + clr.b*ambient;
+
+  return color;
 }
 
 vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
-  vec3 normal = origin - loc;
-  if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
-    for(int i = 0; i < normal.length(); i++){
-      normal[i] = tempNorm[i];
-    }
-  }
+  vec3 normal = normalize(getNormal(origin));
   ray = normalize(ray);
   normal = normalize(normal);
   return normalize(ray - 2*(dot(ray,normal))*normal);
@@ -412,15 +402,8 @@ vec3 SphereObj::reflectedRay(vec3 ray, vec3 origin){
 
 vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
   float n1, n2; //indicies of refraction
-  vec3 normal = origin - loc;
-  if(composite != mat4(1)){
-    vec4 tempNorm = glm::transpose(composite)*vec4(normal,0);
-    for(int i = 0; i < normal.length(); i++){
-      normal[i] = tempNorm[i];
-    }
-  }
+  vec3 normal = normalize(getNormal(origin));
   ray = normalize(ray);
-  normal = normalize(normal);
   //into obj out of air
   if(dot(ray,normal) < 0){
     n1 = 1.0f;
@@ -447,6 +430,13 @@ vec3 SphereObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos
 
   *offsetOrig = origin - normal*.01f; //set offset origin
   return normalize((nRatio*ray)+(((nRatio*(*cos))-sqrt(disc))*normal));
+}
+
+vec3 SphereObj::getNormal(vec3 worldPos){
+  vec3 n = worldPos - loc;
+  if(composite != mat4(1))
+    n = vec3(glm::transpose(composite)*vec4(n,0));
+  return n;
 }
 
 void SphereObj::printID(){cout << "Sphere " << objID << endl;};

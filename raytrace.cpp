@@ -230,7 +230,7 @@ int main(int argc, char* argv[]){
           background.g = 0.0f;
           background.b = 0.0f;
           bool usebvh = true;
-          clr = raytrace(primaryRay,usebvh,6);
+          clr = raytrace(primaryRay,usebvh,6,1);
           img->pixel(x,y,clr);
         //}
       //}
@@ -298,7 +298,7 @@ vec3 diskToHemisphere(float u1, float u2){
   return vec3(x, y, sqrt(u1));
 }
 
-color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
+color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
   color_t clr; //color to return
   float t = INT_MAX; //bvh interpolation value
   float p = INT_MAX; //plane list interp value
@@ -351,12 +351,32 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
       }
 
       //Monte Carlo recursion
-      float dx, dy;
-      float u1 = rand()/RAND_MAX, u2 = rand()/RAND_MAX;
-      sampleDisk(u1,u2,&dx,&dy);
-      vec3 hDir = diskToHemisphere(dx,dy);
-      Ray monteCarlo(worldPos,hDir);
-      color_t indirect; //total indirect lighting
+      color_t GIcolor = background; //total indirect lighting
+      GIdepth = 0;
+      if(GIdepth > 0){
+        int n = 256;
+        for(int i = 0; i < n; i++){
+          float dx, dy;
+          float u1 = rand()/RAND_MAX, u2 = rand()/RAND_MAX;
+          sampleDisk(u1,u2,&dx,&dy);
+          vec3 hDir = diskToHemisphere(dx,dy); //direction of ray in hemisphere
+          //rotate ray
+          vec3 norm = traceObj->getNormal(intersection); //object normal
+          float angle = acosf(dot(hDir,norm)); //angle of rotation
+          vec3 axis = cross(hDir,norm); //axis of rotation
+          vec3 hDirRot = hDir*cosf(angle)+ (cross(axis,hDir))*sinf(angle)
+            + axis*(dot(axis,hDir))*(1-cosf(angle));
+          //create ray and recurse
+          Ray monteCarlo(worldPos,hDirRot); //the ray to recurse with
+          //color_t catchCol = raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
+          //catchCol /= n;
+          //GIcolor += catchCol;
+          GIcolor += raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
+          //GIcolor /= n;
+          //cout << GIcolor.r << " " << GIcolor.g << " " << GIcolor.b << endl;
+        }
+        GIcolor /= n;
+      }
       
       //get base color
       //using rgb color
@@ -386,7 +406,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
         Ray reflect(worldPos,
           traceObj->reflectedRay(ray.dir,intersection));
         //recurse
-        reflColor = raytrace(reflect,usebvh,recursionDepth-1); //recurse
+        reflColor = raytrace(reflect,usebvh,recursionDepth-1,GIdepth); //recurse
       }
       else{ //no reflection
         reflColor = background;
@@ -406,7 +426,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
         //update origin based on which way the ray went
         refract.orig = offsetOrig;
         //recurse
-        refrColor = raytrace(refract,usebvh,recursionDepth-1);
+        refrColor = raytrace(refract,usebvh,recursionDepth-1,GIdepth);
       }
       else{ //no refraction
         refrColor = background;
@@ -423,6 +443,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
         BVH_Node shadowNode;
 
         //intersect shadow feeler with geometry
+        //shadeColor = background;
         if(usebvh){ //use bvh
           if(bvh->intersect(bvh,shadowRay.dir,shadowRay.orig
             +(shadowRay.dir*epsilon),&shadowNode,&tShadow)){
@@ -449,7 +470,11 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
           }
         }
         if(!shadow){ //no shadows
-          traceObj->shade(ray.dir,intersection,&shadeColor,*light,shade);
+          if(lightList.size() > 1)
+            shadeColor += 
+              traceObj->shade(ray.dir,intersection,shadeColor,*light,shade);
+          else shadeColor = 
+            traceObj->shade(ray.dir,intersection,shadeColor,*light,shade);
         }
         else{ //shadows
           //set to ambient color
@@ -486,6 +511,11 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth){
       clr.r += shadeColor.f*refrColor.r;
       clr.g += shadeColor.f*refrColor.g;
       clr.b += shadeColor.f*refrColor.b;
+
+      //global illumination
+      clr.r += GIcolor.r;
+      clr.g += GIcolor.g;
+      clr.b += GIcolor.b;
     }
     else clr = background; //nothing to draw at that pixel
   }

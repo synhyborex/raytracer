@@ -114,6 +114,7 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
   BVH_Node* leftRet = NULL;
   BVH_Node* rightRet = NULL;
   BVH_Node* ret = NULL;
+  std::list<BVH_Node*> stack;
 
   /*if(cur == NULL || !cur->bb.intersect(ray,origin)) return false;
   //check if leaf
@@ -150,8 +151,6 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
     *n = *rightRet;
     *tMain = tRight;
   }*/
-
-  std::list<BVH_Node*> stack;
 
   //traverse tree
   /*stack.push_front(this);

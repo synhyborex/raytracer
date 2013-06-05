@@ -8,21 +8,21 @@
 //}
 
 camera {
-  location  <0, 0, -14>
+  location  <3, -3,10> 
   up        <0,  1,  0>
-  right     <-1.33333, 0, 0>
+  right     <1.33333, 0, 0>
   look_at   <0, 0, 0>
 }
 
 //camera {
-//location  <7, 0,7> 
+//location  <3, -3,6> 
 //up        <0,  1,  0>
 //right     <.94, 0,  -.94>
 //look_at   <0, 0, 0>
 //}
 
 
-light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}
+light_source {<3, 0,10>  color rgb <1.5, 1.5, 1.5>}
 //light_source {<10, 10, 10> color rgb <0.0, 0.0, 0.0>}
 
 sphere { <0, -1, -1>, 1
@@ -43,8 +43,8 @@ sphere { <0, -1, -1>, 1
 //  finish {ambient 0.2 diffuse 0.8}
 //}
 
-sphere { <3, -1, 4>, 1
-  pigment { color rgb <1.0, 0.0, 1.0>}
+sphere { <3, -3, 4>, 1
+  pigment { color rgb <1.0, 1.0, 1.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05}
 }
 

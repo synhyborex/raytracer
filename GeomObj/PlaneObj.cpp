@@ -277,7 +277,7 @@ bool PlaneObj::intersect(vec3 ray, vec3 origin, float *t){
   }
 }
 
-void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
+color_t PlaneObj::shade(vec3 ray, vec3 worldPos, color_t clr, Light l, int shade){
   vec3 N = normalize(normal); //normal vector
   if(composite != mat4(1)){
     vec4 tempNorm = glm::transpose(composite)*vec4(N,0);
@@ -335,9 +335,12 @@ void PlaneObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){
   specBlue = specular*tempS*lightColor[1];
   specGreen = specular*tempS*lightColor[2];
 
-  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  color_t color;
+  color.r = clr.r*diffuseRed + clr.r*specRed + clr.r*ambient;
+  color.g = clr.g*diffuseGreen + clr.g*specGreen + clr.g*ambient;
+  color.b = clr.b*diffuseBlue + clr.b*specBlue + clr.b*ambient;
+
+  return color;
 }
 
 vec3 PlaneObj::reflectedRay(vec3 ray, vec3 origin){
@@ -395,7 +398,7 @@ vec3 PlaneObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos,
 
 void PlaneObj::printID(){cout << "Plane " << objID << endl;};
 
-vec3 PlaneObj::getNormal(){return normal;}
+vec3 PlaneObj::getNormal(vec3 worldPos){return normal;}
 void PlaneObj::setNormal(vec3 v){
   normal = v;
 }

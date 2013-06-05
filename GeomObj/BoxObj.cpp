@@ -327,7 +327,7 @@ bool BoxObj::intersect(vec3 ray, vec3 origin, float *t){
   return true;
 }
 
-void BoxObj::shade(vec3 ray,vec3 worldPos,color_t* clr,Light l, int shade){
+color_t BoxObj::shade(vec3 ray,vec3 worldPos,color_t clr,Light l, int shade){
   vec3 N = normalize(getNormal(worldPos)); //normal vector
   vec3 L = normalize((l.loc-worldPos)); //light vector
   vec3 V = normalize(-ray); //view vector
@@ -380,9 +380,12 @@ void BoxObj::shade(vec3 ray,vec3 worldPos,color_t* clr,Light l, int shade){
   specGreen = specular*tempS*lightColor[2];
 
   //set color
-  clr->r = clr->r*diffuseRed + clr->r*specRed + clr->r*ambient;
-  clr->g = clr->g*diffuseGreen + clr->g*specGreen + clr->g*ambient;
-  clr->b = clr->b*diffuseBlue + clr->b*specBlue + clr->b*ambient;
+  color_t color;
+  color.r = clr.r*diffuseRed + clr.r*specRed + clr.r*ambient;
+  color.g = clr.g*diffuseGreen + clr.g*specGreen + clr.g*ambient;
+  color.b = clr.b*diffuseBlue + clr.b*specBlue + clr.b*ambient;
+
+  return color;
 }
 
 vec3 BoxObj::getNormal(vec3 worldPos){

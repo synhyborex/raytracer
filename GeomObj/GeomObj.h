@@ -74,12 +74,13 @@ class GeomObj{
     virtual void parse(ifstream&) =0; //gets object info
     virtual vec3 transformBB(int); //transforms bounding box
     virtual bool intersect(vec3,vec3,float*) =0; //checks for intersections
-    virtual void shade(vec3,vec3,color_t*,Light,int) =0; //colors the object
+    virtual color_t shade(vec3,vec3,color_t,Light,int) =0; //colors the object
     virtual void printID(){cout << "Geom " << objID << endl;}; //prints ID
     virtual vec3 reflectedRay(vec3,vec3) =0; //returns reflected ray
     virtual vec3 refractedRay(vec3,vec3,vec3*,float*,float*) =0; //returns refracted ray
     virtual int getID(){return objID;}; //returns ID
     virtual void setID(int id){objID = id;}; //sets object ID
+    virtual vec3 getNormal(vec3) =0; //returns normal of the object at a point
     int objID; //object ID
     vec3 rgbColor; //rgb color
     vec4 rgbfColor; //rgbf color

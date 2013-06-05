@@ -7,10 +7,10 @@ camera {
   look_at <0, 0, 0>
 }
 
-//light_source {<4, 3, -2> color rgb <1.0, 1.0, 1.0>}
-//light_source {<1, -4, -4> color rgb <1.0, 1.0, 1.0>}
-//light_source {<-3, 1, -5> color rgb <1.0, 1.0, 1.0>}
-light_source {<1.365, 0.845, -1.105> color rgb <3.0, 3.0, 3.0>}
+light_source {<4, 3, -2> color rgb <1.0, 1.0, 1.0>}
+light_source {<1, -4, -4> color rgb <1.0, 1.0, 1.0>}
+light_source {<-3, 1, -5> color rgb <1.0, 1.0, 1.0>}
+//light_source {<1.365, 0.845, -1.105> color rgb <3.0, 3.0, 3.0>}
 
 triangle {
   <12, 12, 0.5>,

@@ -263,7 +263,10 @@ void ConeObj::parse(ifstream& infile){
 }
 
 bool ConeObj::intersect(vec3 ray, vec3 cam, float *t){return true;}
-void ConeObj::shade(vec3 ray, vec3 worldPos, color_t *clr, Light l, int shade){}
+color_t ConeObj::shade(vec3 ray, vec3 worldPos, color_t clr, Light l, int shade){
+  color_t color;
+  return color;
+}
 vec3 ConeObj::reflectedRay(vec3 ray, vec3 origin){
   return vec3(-1);
 }
@@ -271,6 +274,7 @@ vec3 ConeObj::refractedRay(vec3 ray, vec3 origin, vec3 *n, float *cos, float *r0
   return vec3(-1);
 }
 void ConeObj::printID(){cout << "Cone " << objID << endl;};
+vec3 ConeObj::getNormal(vec3 worldPos){return vec3(-1);}
 
 vec3 ConeObj::getLoc(int end){
   if(end == 1)

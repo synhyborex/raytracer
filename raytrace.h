@@ -43,6 +43,8 @@ vector<PlaneObj*> planeList; //list of planes
 vector<Light*> lightList; //list of lights
 BVH_Node* bvh;
 
+//midterm variables
+bool print;
 
 //file pointers
 ifstream infile;
@@ -53,4 +55,4 @@ float world_to_pixel_x(float,float,float);
 float world_to_pixel_y(float,float,float);
 void sampleDisk(float,float,float*,float*);
 vec3 diskToHemisphere(float,float);
-color_t raytrace(Ray,bool,int);
+color_t raytrace(Ray,bool,int,int);
