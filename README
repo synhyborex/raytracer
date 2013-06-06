@@ -1,10 +1,9 @@
-The BVH is building and traversing correctly, but it's not working quite yet. I can render a scene with any number of planes, but only one object. Scenes with transforms render partial objects. 
+The raytracer works with monte carlo, but it also has this pseduo-reflection appearing, which I could only partially remedy.
 
-Until I implemented the BVH, boxes worked great too. Shading is a little off now; this is due to a bug in how my intersections are being done with the BVH. This is the main bug with my BVH currently.
+I couldn't render the RSCornellbox, but I included two much simpler files to show the color bleeding. These are in the Rendered folder, and the two .pov files are new.pov and simple.pov.
 
-I haven't rendered the example files, they took too long without a working BVH.
-
-I've altered simple.pov to render a single box and a number of different planes. There are other objects commented out, but only one will render of anything. simp_cam.pov also shows the partial rendering of transformed geometry in the BVH.
+new.pov - 55.31 secs
+simple.pov - 36.60 secs
 
 ------Instructions------
 If the binary won't execute, just type "make" and get a new one. It will be called "render".
@@ -23,4 +22,4 @@ If while running the program you don't see the message "File parsing
 complete." but you do see "Successfully opened....", try taking out any
 extra blank space at the end of the .pov file. The last character in a
 .pov file should be '}'. Sometimes the blank spaces at the end make
-the file parsing indefinitely hang. If it's not this, then there are probably carriage returns messing up the file. You can use my versions of the files if you're not getting the expected results, since they definitely work with my parser, though I've made slight modifications as stated above.
+the file parsing indefinitely hang.

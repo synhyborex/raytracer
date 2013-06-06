@@ -43,9 +43,6 @@ vector<PlaneObj*> planeList; //list of planes
 vector<Light*> lightList; //list of lights
 BVH_Node* bvh;
 
-//midterm variables
-bool print;
-
 //file pointers
 ifstream infile;
 char* filename;

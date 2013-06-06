@@ -8,27 +8,27 @@
 //}
 
 camera {
-  location  <3, -3,10> 
+  location  <3, -3.5, -1>
   up        <0,  1,  0>
-  right     <1.33333, 0, 0>
+  right     <-1.33333, 0, 0>
   look_at   <0, 0, 0>
 }
 
 //camera {
-//location  <3, -3,6> 
+//location  <7, 0,7> 
 //up        <0,  1,  0>
 //right     <.94, 0,  -.94>
 //look_at   <0, 0, 0>
 //}
 
 
-light_source {<3, 0,10>  color rgb <1.5, 1.5, 1.5>}
+light_source {<10, 10, -100> color rgb <1.5, 1.5, 1.5>}
 //light_source {<10, 10, 10> color rgb <0.0, 0.0, 0.0>}
 
-sphere { <0, -1, -1>, 1
-  pigment { color rgb <1.0, 0.0, 1.0>}
-  finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05 reflection 0.5}
-}
+//sphere { <0, -1, -1>, 1
+//  pigment { color rgb <1.0, 0.0, 1.0>}
+//  finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05 reflection 0.5}
+//}
 
 //triangle {
 //  <-0.57735, 0.18759, 0.7946499999999999>,
@@ -43,6 +43,7 @@ sphere { <0, -1, -1>, 1
 //  finish {ambient 0.2 diffuse 0.8}
 //}
 
+//white sphere
 sphere { <3, -3, 4>, 1
   pigment { color rgb <1.0, 1.0, 1.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.5 roughness 0.05}
@@ -51,27 +52,18 @@ sphere { <3, -3, 4>, 1
 // floor
 plane {<0, 1, 0>, -4
   pigment {color rgb <0.2, 0.2, 0.8>}
-  finish {ambient 0.4 diffuse 0.2 reflection 0.2}
+  finish {ambient 0.4 diffuse 0.6}
   translate <0, -1, 0>
 }
 
 // left wall
-//plane {<1, 0, 0>, -8
+//plane {<1, 0, 0>, -4
 //  pigment {color rgb <0.8, 0.2, 0.2>}
-//  finish {ambient 0.4 diffuse 0.2 reflection 0.2}
-//  rotate <0, 30, 0>
+//  finish {ambient 0.4 diffuse 0.2}
 //}
 
-// back wall
-//plane {<0, 0, -1>, 30
-//  pigment {color rgb <0.8, 0.4, 0.2>}
-//  finish {ambient 0.4 diffuse 0.2 reflection 0.2}
-//  rotate <0, 30, 0>
-//}
-
-// back wall on the right
-//plane {<0, 0, -1>, 30
-//  pigment {color rgb <0.0, 0.2, 0.2>}
-//  finish {ambient 0.4 diffuse 0.8 reflection 0.2}
-//  rotate <0, -20, 0>
+// right wall
+//plane {<-1, 0, 0>, -4
+//  pigment {color rgb <0.8, 0.2, 0.2>}
+//  finish {ambient 0.4 diffuse 0.2}
 //}

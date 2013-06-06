@@ -352,7 +352,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
 
       //Monte Carlo recursion
       color_t GIcolor = background; //total indirect lighting
-      GIdepth = 0;
+      //GIdepth = 0;
       if(GIdepth > 0){
         int n = 256;
         for(int i = 0; i < n; i++){
@@ -368,14 +368,15 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
             + axis*(dot(axis,hDir))*(1-cosf(angle));
           //create ray and recurse
           Ray monteCarlo(worldPos,hDirRot); //the ray to recurse with
-          //color_t catchCol = raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
-          //catchCol /= n;
-          //GIcolor += catchCol;
-          GIcolor += raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
+          color_t catchCol = raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
+          catchCol /= (float)n;
+          //catchCol /= minDist;
+          GIcolor += catchCol;
+          //GIcolor += raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
           //GIcolor /= n;
           //cout << GIcolor.r << " " << GIcolor.g << " " << GIcolor.b << endl;
         }
-        GIcolor /= n;
+        //GIcolor /= ((float)n)*minDist;;
       }
       
       //get base color
@@ -478,9 +479,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
         }
         else{ //shadows
           //set to ambient color
-          shadeColor.r = shadeColor.r*traceObj->ambient;
-          shadeColor.g = shadeColor.g*traceObj->ambient;
-          shadeColor.b = shadeColor.b*traceObj->ambient;
+          shadeColor = GIcolor;
         } 
       }
 
@@ -516,6 +515,9 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
       clr.r += GIcolor.r;
       clr.g += GIcolor.g;
       clr.b += GIcolor.b;
+
+      if(GIdepth == 0)
+        clr /= minDist;
     }
     else clr = background; //nothing to draw at that pixel
   }
