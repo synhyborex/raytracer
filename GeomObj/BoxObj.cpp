@@ -381,9 +381,9 @@ color_t BoxObj::shade(vec3 ray,vec3 worldPos,color_t clr,Light l, int shade){
 
   //set color
   color_t color;
-  color.r = clr.r*diffuseRed + clr.r*specRed;// + clr.r*ambient;
-  color.g = clr.g*diffuseGreen + clr.g*specGreen;// + clr.g*ambient;
-  color.b = clr.b*diffuseBlue + clr.b*specBlue;// + clr.b*ambient;
+  color.r = clr.r*diffuseRed + clr.r*specRed + clr.r*ambient;
+  color.g = clr.g*diffuseGreen + clr.g*specGreen + clr.g*ambient;
+  color.b = clr.b*diffuseBlue + clr.b*specBlue + clr.b*ambient;
 
   return color;
 }

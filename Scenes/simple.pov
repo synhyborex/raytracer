@@ -22,7 +22,7 @@ camera {
 //}
 
 
-light_source {<10, 10, -100> color rgb <1.5, 1.5, 1.5>}
+light_source {<100, 100, -100> color rgb <1.5, 1.5, 1.5>}
 //light_source {<10, 10, 10> color rgb <0.0, 0.0, 0.0>}
 
 //sphere { <0, -1, -1>, 1

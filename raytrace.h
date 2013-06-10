@@ -213,16 +213,20 @@ char* filename;
 //rasterizer variables
 bool useRaster;
 CMesh *TheMesh; //global mesh
+float** depth; //depth buffer
+char** files; //list of files
+char** rasterFiles; //list of files
+bool* pov; //.pov or .m
 
 /*****RAYTRACER FUNCTIONS*****/
 float world_to_pixel_x(float,float,float);
 float world_to_pixel_y(float,float,float);
 void sampleDisk(float,float,float*,float*);
 vec3 diskToHemisphere(float,float);
-color_t raytrace(Ray,bool,int,int);
+color_t raytrace(int,int,Ray,bool,int,int);
 
 /*****RASTERIZER FUNCTIONS*****/
 void InitGeom(char*);
-float getBeta(float,float,float[][3]);
-float getArea(float,float,float[][3]);
-float getGamma(float,float,float[][3]);
+float getBeta(float,float,vec3[3]);
+float getArea(float,float,vec3[3]);
+float getGamma(float,float,vec3[3]);

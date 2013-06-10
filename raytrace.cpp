@@ -12,193 +12,152 @@ int main(int argc, char* argv[]){
   light = new Light(); //light
 
   //initialize file variables
-  bool fileAvail = false; //check for file option
-
-  int next; //which argv to reference in strncpy
-  bool error = false; //print error or not
+  int numFiles = 0;
   if(argc > 1){
-    //argument checks
-    if(argc > 5){
-      cout << "Too many arguments. Exiting program." << endl;
-      return 0;
-    }
-
-    //check for shading flag
-    if(argv[argc-1][0] == '-' || argv[argc-1][0] == '.'){
-      cout << "Shading not specified. Using Phong." << endl;
-      shade = 0;
+    int start;
+    //no size inputs
+    if(strstr(argv[1],"-I") != NULL){
+      imageWidth = 640;
+      imageHeight = 480;
+      start = 2;
     }
     else{
-      shade = strtod(argv[argc-1],NULL);
-      //make sure it's a valid option
-      if(shade > 1 || shade < 0){
-        cout << "Invalid shading option. Using Phong." << endl;
-        shade = 0;
+      //make sure there are two size inputs
+      if(strstr(argv[3],"-I") != NULL){ 
+        imageWidth = strtod(argv[1],NULL);
+        imageHeight = strtod(argv[2],NULL);
+        start = 4;
+      }
+      else{ //if only one number, invalid. exit program.
+        cout << "Invalid inputs. Exiting." << endl;
+        return 0;
       }
     }
 
-    //look for image flag
-    for(int i = 0; i < argc; i++){
-      //image name
-      if(!fileAvail && argv[i][0] == '-' && argv[i][1] == 'I'){
-        int minusLength;
-        fileAvail = true;
-        char* point; //points to start of file name
-        if(strlen(argv[i]) == 2){ //if file option is "-I <file>"
-          point = argv[i+1];
-          minusLength = 0;
-          next = 1;
-        }
-        else { //file option is "-I<file>"
-          point = argv[i]+2;
-          minusLength = 2;
-          next = 0;
-        } 
-
-        //check safe malloc return and assign file name
-        if((filename = (char*)malloc(sizeof(char*)*strlen(argv[i+next]))) != NULL){
-          strncpy(filename,point,strlen(argv[i+next])-minusLength); //set file name
-        }
-        else cout << "Could not allocate memory for file name" << endl;
-      }
+    //get each filename in command line
+    files = new char*[argc-start];
+    int arrLoc = 0;
+    for(int i = start; i < argc; i++){
+      files[arrLoc++] = argv[i];
+      numFiles++;
     }
-    //missing dimension argument
-    if(argc == 3 && !strcmp(argv[0],"-I")){
-      cout << "Missing dimension. Exiting program." << endl;
-      return 0;
+    //record whether it's a .m or .pov
+    pov = new bool[numFiles];
+    for(int i = 0; i < numFiles; i++){
+      if(strstr(files[i],(char*)".pov") != NULL)
+        pov[i] = true;
+      else if(strstr(files[i],(char*)".m") != NULL)
+        pov[i] = false;
     }
-    //get dimensions
-    else if(argc == 3 && !fileAvail){
-      imageWidth = strtod(argv[1],NULL);
-      imageHeight = strtod(argv[2],NULL);
-    }
-    if(argc > 2 && fileAvail){ //all options are there
-      imageWidth = strtod(argv[1],NULL);
-      imageHeight = strtod(argv[2],NULL);
-    }
-    //no dimensions/bad dimensions
-    else if(argc == 2){
-      if(fileAvail){ //no dimensions
-        cout << "No dimensions found. Using default." << endl;
-        imageWidth = 640;
-        imageHeight = 480;
-      }
-      else{ //bad dimensions
-        cout << "Bad dimensions. Using default." << endl;
-        imageWidth = 640;
-        imageHeight = 480;
-      }
-    }
+    //initialize raster files array
+    rasterFiles = new char*[argc-start];
   }
   //no options chosen
   else{
     cout << "No options chosen. Using default." << endl;
-    error = true;
-    filename = (char*)"simple.pov";
+    filename = (char*)"Scenes/simple.pov";
     imageWidth = 640;
     imageHeight = 480;
   }
 
-  //in case something was missed
-  if(imageWidth == 0 || imageHeight == 0){
-    imageWidth = 640;
-    imageHeight = 480;
-  }
-
-  //default case if dimensions, but no file option
-  if(!fileAvail && !error){
-    cout << "No filename found. Using default." << endl;
-    filename = (char*)"simple.pov";
-  }
-
-  //filename type
-  if(strstr(filename,(char*)".pov") != NULL)
-    useRaster = false;
-  else if(strstr(filename,(char*)".m") != NULL)
-    useRaster = true;
-
-  //try opening file
-  infile.open(filename,ifstream::in);
-  if(infile.is_open())
-    cout << "Successfully opened file " << filename << " for reading" << endl;
-  else {
-    cout << "Could not open file " << filename;
-    cout << ". Exiting program." << endl;
-    return 0;
-  }
-
-  //holds next string in file
-  char* nextString;
-  if((nextString = (char*)malloc(150)) == NULL){
-    cout << "Could not allocate memory for next string" << endl;
-  }
-
-  if(!useRaster){
-    while(!infile.eof()){
-      infile >> nextString; //get object type
-
-      //check if comment
-      if(nextString[0] == '/'){
-        infile.getline(nextString,150); //ignore line
-      }
-      //check if camera
-      else if(!strcmp(nextString,"camera")){
-        camera->parse(infile);
-      }
-      //check if light
-      else if(!strcmp(nextString,"light_source")){
-        light = new Light();
-        light->parse(infile);
-        lightList.push_back(light);
-      }
-      //check if plane
-      else if(!strcmp(nextString,"plane")){
-        plane = new PlaneObj(PLANE);
-        plane->parse(infile);
-        planeList.push_back(plane);
-        totalSize++;
-      }
-      //check if sphere
-      else if(!strcmp(nextString,"sphere")){
-        sphere = new SphereObj(SPHERE);
-        sphere->parse(infile);
-        objList.push_back(sphere);
-        totalSize++;
-      }
-      //check if cone
-      else if(!strcmp(nextString,"cone")){
-        cone = new ConeObj(CONE);
-        cone->parse(infile);
-        objList.push_back(cone);
-        totalSize++;
-      }
-      //check if box
-      else if(!strcmp(nextString,"box")){
-        box = new BoxObj(BOX);
-        box->parse(infile);
-        objList.push_back(box);
-        totalSize++;
-      }
-      //check if triangle
-      else if(!strcmp(nextString,"triangle")){
-        tri = new TriObj(TRIANGLE);
-        tri->parse(infile);
-        objList.push_back(tri);
-        totalSize++;
-      }
+  int numRaster = 0; //number of raster files/array index
+  for(int i = 0; i < numFiles; i++){
+    filename = files[i]; //current file
+    //try opening file
+    infile.open(filename,ifstream::in);
+    if(infile.is_open())
+      cout << "Successfully opened file " << filename << " for reading" << endl;
+    else {
+      cout << "Could not open file " << filename;
+      cout << ". Exiting program." << endl;
+      return 0;
     }
-    cout << "File parsing complete." << endl;
 
-    //demo purposes
-    cout << "Number of lights in the scene: " << lightList.size() << endl;
-    cout << "Number of objects in the scene: " << totalSize << endl;
+    //holds next string in file
+    char* nextString;
+    if((nextString = (char*)malloc(150)) == NULL){
+      cout << "Could not allocate memory for next string" << endl;
+    }
+
+    //.pov files
+    if(pov[i]){
+      while(!infile.eof()){
+        infile >> nextString; //get object type
+
+        //check if comment
+        if(nextString[0] == '/'){
+          infile.getline(nextString,150); //ignore line
+        }
+        //check if camera
+        else if(!strcmp(nextString,"camera")){
+          camera->parse(infile);
+        }
+        //check if light
+        else if(!strcmp(nextString,"light_source")){
+          light = new Light();
+          light->parse(infile);
+          lightList.push_back(light);
+        }
+        //check if plane
+        else if(!strcmp(nextString,"plane")){
+          plane = new PlaneObj(PLANE);
+          plane->parse(infile);
+          planeList.push_back(plane);
+          totalSize++;
+        }
+        //check if sphere
+        else if(!strcmp(nextString,"sphere")){
+          sphere = new SphereObj(SPHERE);
+          sphere->parse(infile);
+          objList.push_back(sphere);
+          totalSize++;
+        }
+        //check if cone
+        else if(!strcmp(nextString,"cone")){
+          cone = new ConeObj(CONE);
+          cone->parse(infile);
+          objList.push_back(cone);
+          totalSize++;
+        }
+        //check if box
+        else if(!strcmp(nextString,"box")){
+          box = new BoxObj(BOX);
+          box->parse(infile);
+          objList.push_back(box);
+          totalSize++;
+        }
+        //check if triangle
+        else if(!strcmp(nextString,"triangle")){
+          tri = new TriObj(TRIANGLE);
+          tri->parse(infile);
+          objList.push_back(tri);
+          totalSize++;
+        }
+      }
+      cout << "Finished parsing " << filename << "." << endl << endl;
+    }
+    //.m files
+    else{
+      rasterFiles[numRaster++] = filename;
+    }
+    infile.close(); //close file
   }
-  infile.close(); //close file
+  //demo purposes
+  cout << "\nNumber of lights in the scene: " << lightList.size() << endl;
+  cout << "Number of raytraced objects in the scene: " << totalSize << endl;
+  cout << "Number of rasterized objects in the scene: " << numRaster << endl;
 
   /**************Image Processing*******************/
   //create image object
   img = new Image(imageWidth, imageHeight);
-  if(!useRaster){ //raytrace object
+  //initialize depth buffer
+  depth = new float*[imageWidth];
+  for(int i=0; i<imageWidth; i++)
+    depth[i] = new float[imageHeight];
+  for(int i=0; i<imageWidth; i++)
+    for(int j=0; j<imageHeight; j++)
+      depth[i][j] = INT_MAX;
+  if(!useRaster && !objList.empty()){ //raytrace object
     bvh = new BVH_Node(objList,0);
     //bvh->printTree(bvh);
 
@@ -209,7 +168,7 @@ int main(int argc, char* argv[]){
     botB = -1/1.5f; //bottom of near plane
 
     //per pixel calculations
-    cout << "Rendering image. This may take a while..." << endl;
+    cout << "\nRendering image. This may take a while..." << endl;
     for(int x = 0; x < imageWidth; x++){ //x of image
       for(int y = 0; y < imageHeight; y++){ //y of image
         //covert to camera space
@@ -234,25 +193,18 @@ int main(int argc, char* argv[]){
         background.g = 0.0f;
         background.b = 0.0f;
         usebvh = true;
-        clr = raytrace(primaryRay,usebvh,6,1);
+        clr = raytrace(x,y,primaryRay,usebvh,6,1);
         img->pixel(x,y,clr);
       }
     }
   }
-  else{ //rasterize object
-    InitGeom(filename);
+  for(int i = 0; i < numRaster; i++){ //rasterize object
+    InitGeom(rasterFiles[i]);
 
     // holds a triangle's 3 vertices' x, y, z
     float arr[3][3];
+    vec3 verts[3];
     int size = -1;  //used to detect TheMesh->GetVertex error
-
-    //initialize depth buffer
-    float depth[imageWidth][imageHeight];
-    for (int i=0; i<imageWidth; i++){
-      for (int j=0; j<imageHeight; j++){
-        depth[i][j] = INT_MAX;
-      }
-    }
 
     while(++size > -1){
       for(int i = 0; i < 3; i++){
@@ -268,17 +220,47 @@ int main(int argc, char* argv[]){
         break;
       }
 
+      //first tri
       arr[0][0] = world_to_pixel_x(imageHeight, imageWidth, arr[0][0]);
       arr[1][0] = world_to_pixel_y(imageHeight, imageWidth, arr[1][0]);
       arr[2][0] *= -1;
+      verts[0] = vec3(arr[0][0],arr[1][0],arr[2][0]);
 
+      //second tri
       arr[0][1] = world_to_pixel_x(imageHeight, imageWidth, arr[0][1]);
       arr[1][1] = world_to_pixel_y(imageHeight, imageWidth, arr[1][1]);
       arr[2][1] *= -1;
+      verts[1] = vec3(arr[0][1],arr[1][1],arr[2][1]);
 
+      //third tri
       arr[0][2] = world_to_pixel_x(imageHeight, imageWidth, arr[0][2]);
       arr[1][2] = world_to_pixel_y(imageHeight, imageWidth, arr[1][2]);
       arr[2][2] *= -1;
+      verts[2] = vec3(arr[0][2],arr[1][2],arr[2][2]);
+
+      vec3 translate = vec3(100,0,0);
+      mat4 transMat = glm::translate(mat4(1.0f),translate);
+      vec3 scale = vec3(1.2);
+      mat4 scaleMat = glm::scale(mat4(1.0f),scale);
+      vec3 rotate = vec3(0,0,45);
+      float degree;
+      vec3 axis;
+      if(rotate.x != 0.0f){
+        degree = rotate.x;
+        axis = vec3(1,0,0);
+      }
+      else if(rotate.y != 0.0f){
+        degree = rotate.y;
+        axis = vec3(0,1,0);
+      }
+      else if(rotate.z != 0.0f){
+        degree = rotate.z;
+        axis = vec3(0,0,1);
+      }
+      mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
+      for(int k = 0; k < 3; k++){
+        verts[k] = vec3(transMat*vec4(verts[k],1));
+      }
         
       // make a color
       color_t clr_a, clr_b, clr_c;
@@ -298,27 +280,27 @@ int main(int argc, char* argv[]){
       // set a square to be the color above
 
       //set bounding box
-      float max_x = std::max(arr[0][0], arr[0][1]);
-      max_x = std::max(max_x, arr[0][2]);
-      float max_y = std::max(arr[1][0], arr[1][1]);
-      max_y = std::max(max_y, arr[1][2]);
-      float min_x = std::min(arr[0][0], arr[0][1]);
-      min_x = std::min(min_x, arr[0][2]);
-      float min_y = std::min(arr[1][0], arr[1][1]);
-      min_y = std::min(min_y, arr[1][2]);
+      float max_x = std::max(verts[0].x, verts[1].x);
+      max_x = std::max(max_x, verts[2].x);
+      float max_y = std::max(verts[0].y, verts[1].y);
+      max_y = std::max(max_y, verts[2].y);
+      float min_x = std::min(verts[0].x, verts[1].x);
+      min_x = std::min(min_x, verts[2].x);
+      float min_y = std::min(verts[0].y, verts[1].y);
+      min_y = std::min(min_y, verts[2].y);
         
       for (int i = min_x; i <= max_x; i++) {
         for (int j = min_y; j <= max_y; j++) {
-          float beta = getBeta(i, j, arr);
-          float area = getArea(i, j, arr);
+          float beta = getBeta(i, j, verts);
+          float area = getArea(i, j, verts);
           beta /= area;
-          float gamma = getGamma(i, j, arr);
+          float gamma = getGamma(i, j, verts);
           gamma /= area;
           float alpha = 1.0 - beta - gamma;
           if (beta <= 1 && beta >= 0){
             if (gamma <= 1 && gamma >= 0){
               if (alpha <= 1 && alpha >= 0){
-                float curZ = alpha*arr[2][0] + beta*arr[2][1] + gamma*arr[2][2];
+                float curZ = alpha*verts[0].z + beta*verts[1].z + gamma*verts[2].z;
                 if(depth[i][j] > curZ){
                   color_t clr;
                   clr.r = alpha*clr_a.r + beta*clr_b.r + gamma*clr_c.r;
@@ -330,7 +312,7 @@ int main(int argc, char* argv[]){
                   clr.b = alpha*clr_a.b + beta*clr_b.b + gamma*clr_c.b;
                   clr.b *= (1-curZ)/2;
 
-                  img->pixel(i, j, clr);
+                  img->pixel(i, j, clr);  
                   depth[i][j] = curZ;
                 }
               }
@@ -402,7 +384,7 @@ vec3 diskToHemisphere(float u1, float u2){
   return vec3(x, y, sqrt(u1));
 }
 
-color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
+color_t raytrace(int x,int y,Ray ray,bool usebvh,int recursionDepth,int GIdepth){
   color_t clr; //color to return
   float t = INT_MAX; //bvh interpolation value
   float p = INT_MAX; //plane list interp value
@@ -416,6 +398,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
       if(bvh->intersect(bvh,ray.dir,ray.orig,&bestNode,&t)){
         if(t > epsilon && t < minDist){ //check depth
           minDist = t; //update depth
+          depth[x][y] = t;
           traceObj = bestNode.obj; //update closest object
         }
       }
@@ -424,8 +407,9 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
       for(int index = 0; index < objList.size(); index++){
         //if intersect
         if(objList[index]->intersect(ray.dir,ray.orig,&t)){
-          if(t > epsilon && t < minDist){ //check depth
+          if(t > epsilon && t < minDist && t < depth[x][y]){ //check depth
             minDist = t; //update depth
+            depth[x][y] = t;
             traceObj = objList[index]; //update closest object
           }
         }
@@ -456,7 +440,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
 
       //Monte Carlo recursion
       color_t GIcolor = background; //total indirect lighting
-      //GIdepth = 0;
+      GIdepth = 0;
       if(GIdepth > 0){
         int n = 256;
         for(int i = 0; i < n; i++){
@@ -472,7 +456,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
             + axis*(dot(axis,hDir))*(1-cosf(angle));
           //create ray and recurse
           Ray monteCarlo(worldPos,hDirRot); //the ray to recurse with
-          color_t catchCol = raytrace(monteCarlo,usebvh,recursionDepth,GIdepth-1);
+          color_t catchCol = raytrace(x,y,monteCarlo,usebvh,recursionDepth,GIdepth-1);
           catchCol /= (float)n;
           //catchCol /= minDist;
           GIcolor += catchCol;
@@ -511,7 +495,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
         Ray reflect(worldPos,
           traceObj->reflectedRay(ray.dir,intersection));
         //recurse
-        reflColor = raytrace(reflect,usebvh,recursionDepth-1,GIdepth); //recurse
+        reflColor = raytrace(x,y,reflect,usebvh,recursionDepth-1,GIdepth); //recurse
       }
       else{ //no reflection
         reflColor = background;
@@ -531,7 +515,7 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
         //update origin based on which way the ray went
         refract.orig = offsetOrig;
         //recurse
-        refrColor = raytrace(refract,usebvh,recursionDepth-1,GIdepth);
+        refrColor = raytrace(x,y,refract,usebvh,recursionDepth-1,GIdepth);
       }
       else{ //no refraction
         refrColor = background;
@@ -583,7 +567,10 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
         }
         else{ //shadows
           //set to ambient color
-          shadeColor = GIcolor;
+          //shadeColor = GIcolor;
+          shadeColor.r = shadeColor.r*traceObj->ambient;
+          shadeColor.g = shadeColor.g*traceObj->ambient;
+          shadeColor.b = shadeColor.b*traceObj->ambient;
         } 
       }
 
@@ -603,12 +590,12 @@ color_t raytrace(Ray ray, bool usebvh, int recursionDepth, int GIdepth){
       clr.b += shadeColor.f*refrColor.b;
 
       //global illumination
-      clr.r += GIcolor.r;
-      clr.g += GIcolor.g;
-      clr.b += GIcolor.b;
+      //clr.r += GIcolor.r;
+      //clr.g += GIcolor.g;
+      //clr.b += GIcolor.b;
 
-      if(GIdepth == 0)
-        clr /= minDist;
+      //if(GIdepth == 0)
+      //  clr /= minDist;
     }
     else clr = background; //nothing to draw at that pixel
   }
@@ -864,32 +851,32 @@ void InitGeom(char* modelName){
   TheMesh->centerMeshByExtents(SVector3(0));
 }
 
-float getBeta(float x, float y, float arr[3][3]){
-  float beta = arr[0][0] - arr[0][2];
-  beta *= y - arr[1][2];
-  float temp = x - arr[0][2];
-  temp *= arr[1][0] - arr[1][2];
+float getBeta(float x, float y, vec3 arr[3]){
+  float beta = arr[0].x - arr[2].x;
+  beta *= y - arr[2].y;
+  float temp = x - arr[2].x;
+  temp *= arr[0].y - arr[2].y;
   beta -= temp;
   beta *= 0.5;
   return beta;
 }
 
-float getArea(float x, float y, float arr[3][3]){
-  float area = arr[0][2] - arr[0][0];
-  area *= arr[1][1] - arr[1][0];
-  float temp = arr[0][1] - arr[0][0];
-  temp *= arr[1][2] - arr[1][0];
+float getArea(float x, float y, vec3 arr[3]){
+  float area = arr[2].x - arr[0].x;
+  area *= arr[1].y - arr[0].y;
+  float temp = arr[1].x - arr[0].x;
+  temp *= arr[2].y - arr[0].y;
   area -= temp;
   area *= 0.5;
   if (area < 0) area *= -1;
   return area;
 }
 
-float getGamma(float x, float y, float arr[3][3]){
-  float gamma = arr[0][1] - arr[0][0];
-  gamma *= y - arr[1][0];
-  float temp = x - arr[0][0];
-  temp *= arr[1][1] - arr[1][0];
+float getGamma(float x, float y, vec3 arr[3]){
+  float gamma = arr[1].x - arr[0].x;
+  gamma *= y - arr[0].y;
+  float temp = x - arr[0].x;
+  temp *= arr[1].y - arr[0].y;
   gamma -= temp;
   gamma *= 0.5;
   return gamma;
