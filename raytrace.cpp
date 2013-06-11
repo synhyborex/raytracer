@@ -157,7 +157,7 @@ int main(int argc, char* argv[]){
   for(int i=0; i<imageWidth; i++)
     for(int j=0; j<imageHeight; j++)
       depth[i][j] = INT_MAX;
-  if(!useRaster && !objList.empty()){ //raytrace object
+  if(!objList.empty()){ //raytrace object
     bvh = new BVH_Node(objList,0);
     //bvh->printTree(bvh);
 
@@ -188,18 +188,20 @@ int main(int argc, char* argv[]){
         
         //set recursion depth
         recursionDepth = 6;
-        //set background color
-        background.r = 0.0f; //gray
-        background.g = 0.0f;
-        background.b = 0.0f;
+        //set background color135-206-250
+        background.r = 135.f/255.f; //gray
+        background.g = 206.f/255.f;
+        background.b = 250.f/255.f;
         usebvh = true;
         clr = raytrace(x,y,primaryRay,usebvh,6,1);
         img->pixel(x,y,clr);
       }
     }
   }
-  for(int i = 0; i < numRaster; i++){ //rasterize object
-    InitGeom(rasterFiles[i]);
+  for(int idx = 0; idx < numRaster; idx++){ //rasterize object
+    InitGeom(rasterFiles[idx]);
+    //order is:
+    //bunny
 
     // holds a triangle's 3 vertices' x, y, z
     float arr[3][3];
@@ -238,30 +240,6 @@ int main(int argc, char* argv[]){
       arr[2][2] *= -1;
       verts[2] = vec3(arr[0][2],arr[1][2],arr[2][2]);
 
-      vec3 translate = vec3(100,0,0);
-      mat4 transMat = glm::translate(mat4(1.0f),translate);
-      vec3 scale = vec3(1.2);
-      mat4 scaleMat = glm::scale(mat4(1.0f),scale);
-      vec3 rotate = vec3(0,0,45);
-      float degree;
-      vec3 axis;
-      if(rotate.x != 0.0f){
-        degree = rotate.x;
-        axis = vec3(1,0,0);
-      }
-      else if(rotate.y != 0.0f){
-        degree = rotate.y;
-        axis = vec3(0,1,0);
-      }
-      else if(rotate.z != 0.0f){
-        degree = rotate.z;
-        axis = vec3(0,0,1);
-      }
-      mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
-      for(int k = 0; k < 3; k++){
-        verts[k] = vec3(transMat*vec4(verts[k],1));
-      }
-        
       // make a color
       color_t clr_a, clr_b, clr_c;
 
@@ -276,6 +254,59 @@ int main(int argc, char* argv[]){
       clr_c.r = TheMesh->Triangles[size].Color.Red;
       clr_c.g = TheMesh->Triangles[size].Color.Green;
       clr_c.b = TheMesh->Triangles[size].Color.Blue;
+
+      vec3 translate = vec3(0);
+      vec3 scale = vec3(1);
+      vec3 rotate = vec3(0);
+      switch(idx){
+        default: break;
+        case 0: //bunny with blue flower
+          scale = vec3(0.7);
+          translate = vec3(25,0,0);
+          clr_a.r = 222.0f/255.0f;
+          clr_a.g = 184.0f/255.0f;
+          clr_a.b = 135.0f/255.0f;
+          clr_b = clr_a; clr_c = clr_a;
+          break;
+        case 1: //bunny with box cross
+          scale = vec3(0.35);
+          translate = vec3(300,200,0);
+          clr_a.r = 0.7;
+          clr_a.g = 0.0;
+          clr_a.b = 0.3;
+          clr_b = clr_a; clr_c = clr_a;
+          break;
+        case 2: //dragon
+          scale = vec3(0.75);
+          translate = vec3(360,50,0);
+          clr_a.r = 153.f/255.f;
+          clr_a.g = 20.f/255.f;
+          clr_a.b = 204.f/255.f;
+          clr_b = clr_a; clr_c = clr_a;
+          break;
+        case 3: //airplane
+          translate = vec3(0,200,0);
+      }
+      mat4 transMat = glm::translate(mat4(1.0f),translate);
+      mat4 scaleMat = glm::scale(mat4(1.0f),scale);
+      float degree = 0;
+      vec3 axis = vec3(0);
+      if(rotate.x != 0.0f){
+        degree = rotate.x;
+        axis = vec3(1,0,0);
+      }
+      else if(rotate.y != 0.0f){
+        degree = rotate.y;
+        axis = vec3(0,1,0);
+      }
+      else if(rotate.z != 0.0f){
+        degree = rotate.z;
+        axis = vec3(0,0,1);
+      }
+      mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
+      for(int k = 0; k < 3; k++){
+        verts[k] = vec3(transMat*scaleMat*vec4(verts[k],1));
+      }
 
       // set a square to be the color above
 
@@ -302,17 +333,17 @@ int main(int argc, char* argv[]){
               if (alpha <= 1 && alpha >= 0){
                 float curZ = alpha*verts[0].z + beta*verts[1].z + gamma*verts[2].z;
                 if(depth[i][j] > curZ){
-                  color_t clr;
-                  clr.r = alpha*clr_a.r + beta*clr_b.r + gamma*clr_c.r;
-                  clr.r *= (1-curZ)/2; //adjusted for proper shading
+                  color_t rasterClr;
+                  rasterClr.r = alpha*clr_a.r + beta*clr_b.r + gamma*clr_c.r;
+                  rasterClr.r *= 1-curZ; //adjusted for proper shading
 
-                  clr.g = alpha*clr_a.g + beta*clr_b.g + gamma*clr_c.g;
-                  clr.g *= (1-curZ)/2;
+                  rasterClr.g = alpha*clr_a.g + beta*clr_b.g + gamma*clr_c.g;
+                  rasterClr.g *= 1-curZ;
 
-                  clr.b = alpha*clr_a.b + beta*clr_b.b + gamma*clr_c.b;
-                  clr.b *= (1-curZ)/2;
+                  rasterClr.b = alpha*clr_a.b + beta*clr_b.b + gamma*clr_c.b;
+                  rasterClr.b *= 1-curZ;
 
-                  img->pixel(i, j, clr);  
+                  img->pixel(i, j, rasterClr);  
                   depth[i][j] = curZ;
                 }
               }

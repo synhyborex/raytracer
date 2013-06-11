@@ -334,7 +334,7 @@ bool SphereObj::intersect(vec3 ray, vec3 origin, float *t){
 
 color_t SphereObj::shade(vec3 ray, vec3 worldPos, color_t clr, Light l, int shade){
   vec3 N = normalize(getNormal(worldPos));
-  vec3 L = normalize((l.loc-worldPos)); //light vector
+  vec3 L = normalize(l.loc-worldPos); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 H = normalize(L+V); //halfway vector
   vec3 R; //reflection vector

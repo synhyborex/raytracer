@@ -108,7 +108,7 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
   BVH_Node* cur;
   cur = head;
   float bLeft, bRight;
-  float tLeft, tRight;
+  float tLeft = INT_MAX, tRight = INT_MAX, tPass = INT_MAX;
   bool hitLeft = false, hitRight = false; //obj intersections
   bool hitbbL = false, hitbbR = false; //BB intersections
   BVH_Node* leftRet = NULL;
@@ -116,22 +116,39 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
   BVH_Node* ret = NULL;
   std::list<BVH_Node*> stack;
 
-  /*if(cur == NULL || !cur->bb.intersect(ray,origin)) return false;
-  //check if leaf
-  if(!cur->moreNodes && cur->obj){
-    if(cur->obj->bb.intersect(ray,origin)){
-      if(cur->obj->intersect(ray,origin,&tPass)){
-        if(tPass < *tMain){
+  /*if(this == NULL || !bb.intersect(ray,origin)) return false;
+  if(left->obj){
+    if(left->obj->bb.intersect(ray,origin)){
+      if(left->obj->intersect(ray,origin,&tPass)){
+        if(tPass > *tMain){
           *tMain = tPass;
-          *n = *cur;
+          *n = *left;
+          //cout << "hehrehr" << endl;
           return true;
         }
       }
     }
   }
+  return false;*/
 
-  hitLeft = cur->intersect(cur->left,ray,origin,leftRet,&tLeft);
-  hitRight = cur->intersect(cur->right,ray,origin,rightRet,&tRight);
+  /*if(cur == NULL || !cur->bb.intersect(ray,origin)) return false;
+  //check if leaf
+  if(cur->obj){
+    //cout << "hello" << endl;
+    if(cur->obj->intersect(ray,origin,&tPass)){
+      cout << "dope" << endl;
+      if(tPass < *tMain){
+        *tMain = tPass;
+        *n = *cur;
+        cout << "ejrke" << endl;
+        return true;
+      }
+    }
+  }
+  else if(!cur->moreNodes){
+    hitLeft = intersect(cur->left,ray,origin,leftRet,&tLeft);
+    hitRight = cur->intersect(cur->right,ray,origin,rightRet,&tRight);
+  }
 
   if(hitLeft && hitRight){
     if(tLeft <= tRight){
@@ -142,14 +159,17 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
       *n = *rightRet;
       *tMain = tRight;
     }
+    return true;
   }
   else if(hitLeft){
     *n = *leftRet;
     *tMain = tLeft;
+    return true;
   }
   else if(hitRight){
     *n = *rightRet;
     *tMain = tRight;
+    return true;
   }*/
 
   //traverse tree
@@ -271,8 +291,8 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
       if(!cur->left->moreNodes && cur->left->obj){
         if(cur->left->obj->bb.intersect(ray,origin)){
           if(cur->left->obj->intersect(ray,origin,&tLeft)){
-            if(tLeft < *tMain)
-              *tMain = tLeft;
+            //if(tLeft < *tMain)
+            //  *tMain = tLeft;
             leftRet = cur->left;
             hitLeft = true;
           }
@@ -287,8 +307,8 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
       if(!cur->right->moreNodes && cur->right->obj){
         if(cur->right->obj->bb.intersect(ray,origin)){
           if(cur->right->obj->intersect(ray,origin,&tRight)){
-            if(tRight < *tMain)
-              *tMain = tRight;
+            //if(tRight < *tMain)
+            //  *tMain = tRight;
             rightRet = cur->right;
             hitRight = true;
           }
@@ -301,24 +321,30 @@ bool BVH_Node::intersect(BVH_Node* head, vec3 ray, vec3 origin,
       } 
     }
     if(hitLeft && hitRight){
-      if(tLeft < tRight){
+      if(tLeft < *tMain){
+        *tMain = tLeft;
         *n = *leftRet;
-        //*tMain = tLeft;
       }
-      else{
+      if(tRight < *tMain){
+        *tMain = tRight;
         *n = *rightRet;
-        //*tMain = tRight;
       }
       return true;
     }
     else if(hitLeft){
-      *n = *leftRet;
-      return true;
+      if(tLeft < *tMain){
+        *tMain = tLeft;
+        *n = *leftRet;
+      }
+      //return true;
       //*tMain = tLeft;
     }
     else if(hitRight){
-      *n = *rightRet;
-      return true;
+      if(tRight < *tMain){
+        *tMain = tRight;
+        *n = *rightRet;
+      }
+      //return true;
       //*tMain = tRight;
     }
   }

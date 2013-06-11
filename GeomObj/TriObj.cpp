@@ -361,7 +361,7 @@ bool TriObj::intersect(vec3 ray, vec3 origin, float *t){
 
 color_t TriObj::shade(vec3 ray, vec3 worldPos, color_t clr, Light l, int shade){
   vec3 N = normalize(getNormal(worldPos)); //normal vector
-  vec3 L = normalize((l.loc-worldPos)); //light vector
+  vec3 L = normalize(l.loc-worldPos); //light vector
   vec3 V = normalize(-ray); //view vector
   vec3 H = normalize(L+V); //halfway vector
   vec3 R; //reflection vector
@@ -429,7 +429,7 @@ vec3 TriObj::reflectedRay(vec3 ray, vec3 origin){
 
 vec3 TriObj::refractedRay(vec3 ray, vec3 origin, vec3 *offsetOrig, float *cos, float *r0){
   float n1, n2; //indicies of refraction
-  vec3 normal = normalize(getNormal(origin));; //triangle normal
+  vec3 normal = normalize(getNormal(origin)); //triangle normal
   //ray = normalize(ray);
   //normal = normalize(normal);
   //into obj out of air
