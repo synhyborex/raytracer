@@ -51,6 +51,9 @@ int main(int argc, char* argv[]){
     }
     //initialize raster files array
     rasterFiles = new char*[argc-start];
+    if(argc > 4) //most likely my final render
+      finalrender = true;
+    else finalrender = false;
   }
   //no options chosen
   else{
@@ -188,8 +191,8 @@ int main(int argc, char* argv[]){
         
         //set recursion depth
         recursionDepth = 6;
-        //set background color135-206-250
-        background.r = 135.f/255.f; //gray
+        //set background color
+        background.r = 135.f/255.f; //sky blue
         background.g = 206.f/255.f;
         background.b = 250.f/255.f;
         usebvh = true;
@@ -222,70 +225,66 @@ int main(int argc, char* argv[]){
         break;
       }
 
-      //first tri
+      //first vertex
       arr[0][0] = world_to_pixel_x(imageHeight, imageWidth, arr[0][0]);
       arr[1][0] = world_to_pixel_y(imageHeight, imageWidth, arr[1][0]);
       arr[2][0] *= -1;
       verts[0] = vec3(arr[0][0],arr[1][0],arr[2][0]);
 
-      //second tri
+      //second vertex
       arr[0][1] = world_to_pixel_x(imageHeight, imageWidth, arr[0][1]);
       arr[1][1] = world_to_pixel_y(imageHeight, imageWidth, arr[1][1]);
       arr[2][1] *= -1;
       verts[1] = vec3(arr[0][1],arr[1][1],arr[2][1]);
 
-      //third tri
+      //third vertex
       arr[0][2] = world_to_pixel_x(imageHeight, imageWidth, arr[0][2]);
       arr[1][2] = world_to_pixel_y(imageHeight, imageWidth, arr[1][2]);
       arr[2][2] *= -1;
       verts[2] = vec3(arr[0][2],arr[1][2],arr[2][2]);
 
       // make a color
-      color_t clr_a, clr_b, clr_c;
-
+      vec4 modifiers; //ambient, diffuse, specular, roughness
+      modifiers = vec4(0.2f,0.7f,0.4f,0.02f);
+      color_t clr_a;
       clr_a.r = TheMesh->Triangles[size].Color.Red;
       clr_a.g = TheMesh->Triangles[size].Color.Green;
       clr_a.b = TheMesh->Triangles[size].Color.Blue;
 
-      clr_b.r = TheMesh->Triangles[size].Color.Red;
-      clr_b.g = TheMesh->Triangles[size].Color.Green;
-      clr_b.b = TheMesh->Triangles[size].Color.Blue;
-        
-      clr_c.r = TheMesh->Triangles[size].Color.Red;
-      clr_c.g = TheMesh->Triangles[size].Color.Green;
-      clr_c.b = TheMesh->Triangles[size].Color.Blue;
-
-      vec3 translate = vec3(0);
-      vec3 scale = vec3(1);
-      vec3 rotate = vec3(0);
-      switch(idx){
-        default: break;
-        case 0: //bunny with blue flower
-          scale = vec3(0.7);
-          translate = vec3(25,0,0);
-          clr_a.r = 222.0f/255.0f;
-          clr_a.g = 184.0f/255.0f;
-          clr_a.b = 135.0f/255.0f;
-          clr_b = clr_a; clr_c = clr_a;
-          break;
-        case 1: //bunny with box cross
-          scale = vec3(0.35);
-          translate = vec3(300,200,0);
-          clr_a.r = 0.7;
-          clr_a.g = 0.0;
-          clr_a.b = 0.3;
-          clr_b = clr_a; clr_c = clr_a;
-          break;
-        case 2: //dragon
-          scale = vec3(0.75);
-          translate = vec3(360,50,0);
-          clr_a.r = 153.f/255.f;
-          clr_a.g = 20.f/255.f;
-          clr_a.b = 204.f/255.f;
-          clr_b = clr_a; clr_c = clr_a;
-          break;
-        case 3: //airplane
-          translate = vec3(0,200,0);
+      vec3 translate = vec3(0.0f);
+      vec3 scale = vec3(1.0f);
+      vec3 rotate = vec3(0.0f);
+      if(finalrender){
+        switch(idx){
+          default: break;
+          case 0: //bunny with blue flower
+            scale = vec3(0.7);
+            translate = vec3(25,0,0);
+            clr_a.r = 222.0f/255.0f;
+            clr_a.g = 184.0f/255.0f;
+            clr_a.b = 135.0f/255.0f;
+            break;
+          case 1: //bunny with box cross
+            scale = vec3(0.35);
+            translate = vec3(300,200,0);
+            clr_a.r = 0.7;
+            clr_a.g = 0.0;
+            clr_a.b = 0.3;
+            break;
+          case 2: //dragon
+            scale = vec3(0.75);
+            translate = vec3(360,50,0);
+            clr_a.r = 153.f/255.f;
+            clr_a.g = 20.f/255.f;
+            clr_a.b = 204.f/255.f;
+            break;
+          case 3: //airplane
+            translate = vec3(0,200,0);
+        }
+      }
+      else{
+        translate = vec3(100,0,0);
+        //scale = vec3(1.3f);
       }
       mat4 transMat = glm::translate(mat4(1.0f),translate);
       mat4 scaleMat = glm::scale(mat4(1.0f),scale);
@@ -304,8 +303,13 @@ int main(int argc, char* argv[]){
         axis = vec3(0,0,1);
       }
       mat4 rotMat = glm::rotate(mat4(1.0f),degree,axis);
-      for(int k = 0; k < 3; k++){
-        verts[k] = vec3(transMat*scaleMat*vec4(verts[k],1));
+      mat4 comp = transMat*scaleMat;
+      //get normal
+      vec3 normal = getNormal(verts,comp);
+      if(comp != mat4(1.0f)){
+        for(int k = 0; k < 3; k++){
+          verts[k] = vec3(comp*vec4(verts[k],1));
+        }
       }
 
       // set a square to be the color above
@@ -332,19 +336,22 @@ int main(int argc, char* argv[]){
             if (gamma <= 1 && gamma >= 0){
               if (alpha <= 1 && alpha >= 0){
                 float curZ = alpha*verts[0].z + beta*verts[1].z + gamma*verts[2].z;
-                if(depth[i][j] > curZ){
-                  color_t rasterClr;
-                  rasterClr.r = alpha*clr_a.r + beta*clr_b.r + gamma*clr_c.r;
+                if(curZ < depth[i][j]){
+                  depth[i][j] = curZ; //udpate depth
+
+                  //shading                  
+                  color_t rasterClr = 
+                    rasterShade(verts,normal,comp,modifiers,clr_a,*light,0);
+                  rasterClr.r += alpha*clr_a.r + beta*clr_a.r + gamma*clr_a.r;
                   rasterClr.r *= 1-curZ; //adjusted for proper shading
 
-                  rasterClr.g = alpha*clr_a.g + beta*clr_b.g + gamma*clr_c.g;
+                  rasterClr.g += alpha*clr_a.g + beta*clr_a.g + gamma*clr_a.g;
                   rasterClr.g *= 1-curZ;
 
-                  rasterClr.b = alpha*clr_a.b + beta*clr_b.b + gamma*clr_c.b;
+                  rasterClr.b += alpha*clr_a.b + beta*clr_a.b + gamma*clr_a.b;
                   rasterClr.b *= 1-curZ;
 
                   img->pixel(i, j, rasterClr);  
-                  depth[i][j] = curZ;
                 }
               }
             }
@@ -382,6 +389,84 @@ int main(int argc, char* argv[]){
   printf("Image rendered in %d minutes and %.2lf seconds\n",minutes,seconds);
 
   return 0;
+}
+
+vec3 getNormal(vec3 v[3], mat4 composite){
+  vec3 n = cross(v[1]-v[0],v[2]-v[0]);
+  mat4 tmp = inverse(transpose(composite));
+  if(tmp != mat4(1.0f))
+    n = vec3(tmp*vec4(n,0));
+  return n;
+}
+
+vec3 getCenter(vec3 v[3]){
+  float x = (v[0].x+v[1].x+v[2].x)/3;
+  float y = (v[0].y+v[1].y+v[2].y)/3;
+  float z = (v[0].z+v[1].z+v[2].z)/3;
+  return vec3(x,y,z);
+}
+
+color_t rasterShade(vec3 verts[3], vec3 n, mat4 compos, vec4 mod, color_t clr, Light l, int shadeType){
+  float ambient=mod[0],diffuse=mod[1],specular=mod[2],roughness=mod[3];
+  vec3 center = getCenter(verts);
+  vec3 N = normalize(n); //normal vector
+  vec3 L = normalize(l.loc-center); //light vector
+  vec3 V = normalize(camera->loc-center); //view vector
+  vec3 H = normalize(L+V); //halfway vector
+  vec3 R; //reflection vector
+  vec4 lightColor; //color of light
+  float diffuseRed, diffuseBlue, diffuseGreen;
+  float specRed, specBlue, specGreen;
+
+  //get the color of the light
+  if(l.getRGBColor() != vec3(-1)){
+    lightColor = vec4(l.getRGBColor(),0.0f);
+  }
+  else if(l.getRGBFColor() != vec4(-1)){
+    lightColor = l.getRGBFColor();
+  }
+
+  //calculate R
+  R = vec3(-1.0 * L.x, -1.0 * L.y, -1.0 * L.z);
+  float temp = 2.0*dot(L,N);
+  vec3 tempR = vec3(temp * N.x, temp * N.y, temp * N.z);
+  R = vec3(R.x + tempR.x, R.y + tempR.y, R.z + tempR.z);
+  R = normalize(R);
+
+  //diffuse calculations
+  float tempD = std::max(dot(N,L),0.0f);
+  diffuseRed = diffuse*tempD*lightColor[0];
+  diffuseBlue = diffuse*tempD*lightColor[1];
+  diffuseGreen = diffuse*tempD*lightColor[2];
+  //need to do something for alpha value
+
+  //specular calculations
+  float tempS;
+  switch(shadeType){
+    case 0: //Phong
+      tempS = std::max(dot(V,R),0.0f);
+      if(roughness > 0.0f)
+        tempS = std::pow(tempS,1/roughness);
+      break;
+    case 1: //Gaussian
+      float theta;
+      if(roughness == 0.0f)
+        roughness += 0.00001;
+      theta = acosf(dot(N,H)/(length(N)*length(H)));
+      tempS = exp(-pow(theta/roughness,2));
+      break;
+  }
+  specRed = specular*tempS*lightColor[0];
+  specBlue = specular*tempS*lightColor[1];
+  specGreen = specular*tempS*lightColor[2];
+
+  //set color
+  color_t color;
+  color.r = clr.r*diffuseRed + clr.r*specRed + clr.r*ambient;
+  color.g = clr.g*diffuseGreen + clr.g*specGreen + clr.g*ambient;
+  color.b = clr.b*diffuseBlue + clr.b*specBlue + clr.b*ambient;
+
+  return color;
 }
 
 float world_to_pixel_x(float height, float width, float x){
@@ -427,7 +512,7 @@ color_t raytrace(int x,int y,Ray ray,bool usebvh,int recursionDepth,int GIdepth)
     //check primary ray against BVH
     if(usebvh){ //use bvh
       if(bvh->intersect(bvh,ray.dir,ray.orig,&bestNode,&t)){
-        if(t > epsilon && t < minDist){ //check depth
+        if(t > epsilon && t < minDist && t < depth[x][y]){ //check depth
           minDist = t; //update depth
           depth[x][y] = t;
           traceObj = bestNode.obj; //update closest object
@@ -590,9 +675,10 @@ color_t raytrace(int x,int y,Ray ray,bool usebvh,int recursionDepth,int GIdepth)
           }
         }
         if(!shadow){ //no shadows
+          Light* passLight = lightList[lightIdx];
           if(lightList.size() > 1)
             shadeColor += 
-              traceObj->shade(ray.dir,intersection,shadeColor,*light,shade);
+              traceObj->shade(ray.dir,intersection,shadeColor,*passLight,shade);
           else shadeColor = 
             traceObj->shade(ray.dir,intersection,shadeColor,*light,shade);
         }

@@ -1,21 +1,18 @@
-The raytracer works with monte carlo, but it also has this pseduo-reflection appearing, which I could only partially remedy.
-
-I couldn't render the RSCornellbox, but I included two much simpler files to show the color bleeding. These are in the Rendered folder, and the two .pov files are new.pov and simple.pov.
-
-new.pov - 55.31 secs
-simple.pov - 36.60 secs
+This is the source code for the final state of my project. It includes
+the webpage material in the folder "web".
 
 ------Instructions------
 If the binary won't execute, just type "make" and get a new one. It will be called "render".
 
 To toggle shading modes, use a command line argument of the format
-./render <width> <height> -I<filename> <shading>
-where <shading> can be 0 for Phong, or 1 for Gaussian.
-Each <> flag is optional, as defaults have been set to
-<width> = 640
-<height> = 480
--I<filename> = simple.pov
-<shading> = 0
+./render <width> <height> -I <filename> <filename> ....
+OR
+./render -I <filename> <filename> ....
+width - desired width of image
+height - desired height of image
+-I - flag for filenames
+You may choose as many files as you want, and they will be rendered.
+However, for .m files, there is no guarantee they will be in the place you want them--they will be generated in the bottom left-ish unless explicit transforms are applied within raytrace.cpp.
 
 ***IMPORTANT***
 If while running the program you don't see the message "File parsing

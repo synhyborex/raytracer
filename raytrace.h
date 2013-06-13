@@ -217,6 +217,7 @@ float** depth; //depth buffer
 char** files; //list of files
 char** rasterFiles; //list of files
 bool* pov; //.pov or .m
+bool finalrender; //is it my final render?
 
 /*****RAYTRACER FUNCTIONS*****/
 float world_to_pixel_x(float,float,float);
@@ -230,3 +231,6 @@ void InitGeom(char*);
 float getBeta(float,float,vec3[3]);
 float getArea(float,float,vec3[3]);
 float getGamma(float,float,vec3[3]);
+vec3 getNormal(vec3[3],mat4);
+vec3 getCenter(vec3[3]);
+color_t rasterShade(vec3[3],vec3,mat4,vec4,color_t,Light,int);
